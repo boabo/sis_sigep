@@ -285,7 +285,7 @@ ALTER TABLE sigep.tdocumento_respaldo
 
 
 CREATE TABLE sigep.tentidad (
-  id_entidad_boa INTEGER DEFAULT nextval('sigep.tentidad_id_tentidad_seq'::regclass) NOT NULL,
+  id_entidad_boa SERIAL NOT NULL,
   id_entidad INTEGER NOT NULL,
   entidad INTEGER NOT NULL,
   desc_entidad VARCHAR(250) NOT NULL,
@@ -599,7 +599,7 @@ ALTER TABLE sigep.tpresupuesto_gasto
 
 
 CREATE TABLE sigep.tprograma (
-  id_programa_boa INTEGER DEFAULT nextval('sigep.tprograma_id_programa_seq'::regclass) NOT NULL,
+  id_programa_boa SERIAL NOT NULL,
   id_catprg INTEGER NOT NULL,
   id_entidad INTEGER NOT NULL,
   programa INTEGER NOT NULL,
@@ -699,7 +699,7 @@ ALTER TABLE sigep.tsigade
 
 
 CREATE TABLE sigep.tunidad_ejecutora (
-  id_unidad_ejecutora_boa INTEGER DEFAULT nextval('sigep.tunidad_ejecutora_id_unidad_ejecutora_seq'::regclass) NOT NULL,
+  id_unidad_ejecutora_boa SERIAL NOT NULL,
   id_ue INTEGER NOT NULL,
   id_da INTEGER NOT NULL,
   ue INTEGER NOT NULL,
