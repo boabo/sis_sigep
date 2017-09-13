@@ -10,29 +10,7 @@ CREATE TABLE sigep.tacreedor (
   id_afp INTEGER,
   CONSTRAINT tacreedor_pkey PRIMARY KEY(id_acreedor)
 ) INHERITS (pxp.tbase)
-
 WITH (oids = false);
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN id_acreedor SET STATISTICS 0;
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN acreedor SET STATISTICS 0;
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN desc_acreedor SET STATISTICS 0;
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN tipo_acreedor SET STATISTICS 0;
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN de_ley SET STATISTICS 0;
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN id_tipo_obligacion_columna SET STATISTICS 0;
-
-ALTER TABLE sigep.tacreedor
-  ALTER COLUMN id_afp SET STATISTICS 0;
 
 
 
@@ -47,17 +25,6 @@ CREATE TABLE sigep.tbanco (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tbanco
-  ALTER COLUMN id_banco_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tbanco
-  ALTER COLUMN banco SET STATISTICS 0;
-
-ALTER TABLE sigep.tbanco
-  ALTER COLUMN desc_banco SET STATISTICS 0;
-
-ALTER TABLE sigep.tbanco
-  ALTER COLUMN id_institucion SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tcatalogo_proyecto (
@@ -81,14 +48,8 @@ CREATE TABLE sigep.tcatalogo_proyecto (
     ON UPDATE NO ACTION
     NOT DEFERRABLE
 ) INHERITS (pxp.tbase)
-
 WITH (oids = false);
 
-ALTER TABLE sigep.tcatalogo_proyecto
-  ALTER COLUMN id_catalogo_proyecto SET STATISTICS 0;
-
-ALTER TABLE sigep.tcatalogo_proyecto
-  ALTER COLUMN id_catpry SET STATISTICS 0;
 
 
 
@@ -102,18 +63,6 @@ CREATE TABLE sigep.tclase_gasto_cip (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tclase_gasto_cip
-  ALTER COLUMN id_clase_gasto_cip SET STATISTICS 0;
-
-ALTER TABLE sigep.tclase_gasto_cip
-  ALTER COLUMN clase_gasto SET STATISTICS 0;
-
-ALTER TABLE sigep.tclase_gasto_cip
-  ALTER COLUMN desc_clase_gasto SET STATISTICS 0;
-
-ALTER TABLE sigep.tclase_gasto_cip
-  ALTER COLUMN id_clase_gasto SET STATISTICS 0;
-
 
 CREATE TABLE sigep.tclase_gasto_sip (
   id_clase_gasto_sip SERIAL,
@@ -125,17 +74,6 @@ CREATE TABLE sigep.tclase_gasto_sip (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tclase_gasto_sip
-  ALTER COLUMN id_clase_gasto_sip SET STATISTICS 0;
-
-ALTER TABLE sigep.tclase_gasto_sip
-  ALTER COLUMN clase_gasto SET STATISTICS 0;
-
-ALTER TABLE sigep.tclase_gasto_sip
-  ALTER COLUMN desc_clase_gasto SET STATISTICS 0;
-
-ALTER TABLE sigep.tclase_gasto_sip
-  ALTER COLUMN id_clase_gasto SET STATISTICS 0;
 
 
 
@@ -155,29 +93,9 @@ CREATE TABLE sigep.tcuenta_bancaria (
     ON UPDATE NO ACTION
     NOT DEFERRABLE
 ) INHERITS (pxp.tbase)
-
 WITH (oids = false);
 
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN id_cuenta_bancaria_boa SET STATISTICS 0;
 
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN banco SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN cuenta SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN desc_cuenta SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN moneda SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN tipo_cuenta SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_bancaria
-  ALTER COLUMN id_cuenta_bancaria SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tcuenta_contable (
@@ -190,29 +108,8 @@ CREATE TABLE sigep.tcuenta_contable (
   id_gestion INTEGER,
   CONSTRAINT tcuenta_contable_pkey PRIMARY KEY(id_cuenta_contable)
 ) INHERITS (pxp.tbase)
-
 WITH (oids = false);
 
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN id_cuenta_contable SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN modelo_contable SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN cuenta_contable SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN des_cuenta_contable SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN imputable SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN id_cuenta SET STATISTICS 0;
-
-ALTER TABLE sigep.tcuenta_contable
-  ALTER COLUMN id_gestion SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tdireccion_administrativa (
@@ -239,26 +136,6 @@ CREATE TABLE sigep.tdireccion_administrativa (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN id_direccion_administrativa_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN id_da SET STATISTICS 0;
-
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN id_entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN da SET STATISTICS 0;
-
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN desc_da SET STATISTICS 0;
-
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN tipo_da SET STATISTICS 0;
-
-ALTER TABLE sigep.tdireccion_administrativa
-  ALTER COLUMN id_gestion SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tdocumento_respaldo (
@@ -271,17 +148,6 @@ CREATE TABLE sigep.tdocumento_respaldo (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tdocumento_respaldo
-  ALTER COLUMN id_documento_respaldo SET STATISTICS 0;
-
-ALTER TABLE sigep.tdocumento_respaldo
-  ALTER COLUMN documento_respaldo SET STATISTICS 0;
-
-ALTER TABLE sigep.tdocumento_respaldo
-  ALTER COLUMN sigla SET STATISTICS 0;
-
-ALTER TABLE sigep.tdocumento_respaldo
-  ALTER COLUMN desc_documento SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tentidad (
@@ -302,23 +168,6 @@ CREATE TABLE sigep.tentidad (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tentidad
-  ALTER COLUMN id_entidad_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tentidad
-  ALTER COLUMN id_entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.tentidad
-  ALTER COLUMN entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.tentidad
-  ALTER COLUMN desc_entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.tentidad
-  ALTER COLUMN sigla_entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.tentidad
-  ALTER COLUMN tuicion_entidad SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tfuente_financiamiento (
@@ -344,20 +193,6 @@ CREATE TABLE sigep.tfuente_financiamiento (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tfuente_financiamiento
-  ALTER COLUMN id_fuente_financiamiento SET STATISTICS 0;
-
-ALTER TABLE sigep.tfuente_financiamiento
-  ALTER COLUMN id_fuente SET STATISTICS 0;
-
-ALTER TABLE sigep.tfuente_financiamiento
-  ALTER COLUMN fuente SET STATISTICS 0;
-
-ALTER TABLE sigep.tfuente_financiamiento
-  ALTER COLUMN desc_fuente SET STATISTICS 0;
-
-ALTER TABLE sigep.tfuente_financiamiento
-  ALTER COLUMN sigla_fuente SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tlibreta (
@@ -375,29 +210,6 @@ CREATE TABLE sigep.tlibreta (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN id_libreta_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN banco SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN cuenta SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN id_libreta SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN libreta SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN desc_libreta SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN moneda SET STATISTICS 0;
-
-ALTER TABLE sigep.tlibreta
-  ALTER COLUMN estado_libre SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tmatriz_control (
@@ -411,20 +223,6 @@ CREATE TABLE sigep.tmatriz_control (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tmatriz_control
-  ALTER COLUMN id_matriz_control SET STATISTICS 0;
-
-ALTER TABLE sigep.tmatriz_control
-  ALTER COLUMN banco SET STATISTICS 0;
-
-ALTER TABLE sigep.tmatriz_control
-  ALTER COLUMN cuenta SET STATISTICS 0;
-
-ALTER TABLE sigep.tmatriz_control
-  ALTER COLUMN id_libreta SET STATISTICS 0;
-
-ALTER TABLE sigep.tmatriz_control
-  ALTER COLUMN libreta SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tmoneda (
@@ -440,17 +238,8 @@ CREATE TABLE sigep.tmoneda (
     ON UPDATE NO ACTION
     NOT DEFERRABLE
 ) INHERITS (pxp.tbase)
-
 WITH (oids = false);
 
-ALTER TABLE sigep.tmoneda
-  ALTER COLUMN id_moneda_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tmoneda
-  ALTER COLUMN moneda SET STATISTICS 0;
-
-ALTER TABLE sigep.tmoneda
-  ALTER COLUMN desc_moneda SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tobjeto_gasto (
@@ -476,23 +265,6 @@ CREATE TABLE sigep.tobjeto_gasto (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tobjeto_gasto
-  ALTER COLUMN id_objeto_gasto SET STATISTICS 0;
-
-ALTER TABLE sigep.tobjeto_gasto
-  ALTER COLUMN id_objeto SET STATISTICS 0;
-
-ALTER TABLE sigep.tobjeto_gasto
-  ALTER COLUMN objeto SET STATISTICS 0;
-
-ALTER TABLE sigep.tobjeto_gasto
-  ALTER COLUMN desc_objeto SET STATISTICS 0;
-
-ALTER TABLE sigep.tobjeto_gasto
-  ALTER COLUMN nivel SET STATISTICS 0;
-
-ALTER TABLE sigep.tobjeto_gasto
-  ALTER COLUMN id_partida SET STATISTICS 0;
 
 
 CREATE TABLE sigep.torganismo_financiador (
@@ -518,20 +290,6 @@ CREATE TABLE sigep.torganismo_financiador (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.torganismo_financiador
-  ALTER COLUMN id_organismo_financiador SET STATISTICS 0;
-
-ALTER TABLE sigep.torganismo_financiador
-  ALTER COLUMN id_organismo SET STATISTICS 0;
-
-ALTER TABLE sigep.torganismo_financiador
-  ALTER COLUMN organismo SET STATISTICS 0;
-
-ALTER TABLE sigep.torganismo_financiador
-  ALTER COLUMN desc_organismo SET STATISTICS 0;
-
-ALTER TABLE sigep.torganismo_financiador
-  ALTER COLUMN sigla_organismo SET STATISTICS 0;
 
 
 CREATE TABLE sigep.totfin (
@@ -543,18 +301,6 @@ CREATE TABLE sigep.totfin (
 ) INHERITS (pxp.tbase)
 
 WITH (oids = false);
-
-ALTER TABLE sigep.totfin
-  ALTER COLUMN id_otfin SET STATISTICS 0;
-
-ALTER TABLE sigep.totfin
-  ALTER COLUMN otfin SET STATISTICS 0;
-
-ALTER TABLE sigep.totfin
-  ALTER COLUMN id_entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.totfin
-  ALTER COLUMN desc_otfin SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tpresupuesto_gasto (
@@ -581,25 +327,13 @@ CREATE TABLE sigep.tpresupuesto_gasto (
     ON UPDATE NO ACTION
     NOT DEFERRABLE
 ) INHERITS (pxp.tbase)
-
 WITH (oids = false);
 
-ALTER TABLE sigep.tpresupuesto_gasto
-  ALTER COLUMN id_presupuesto_gasto SET STATISTICS 0;
-
-ALTER TABLE sigep.tpresupuesto_gasto
-  ALTER COLUMN gestion SET STATISTICS 0;
-
-ALTER TABLE sigep.tpresupuesto_gasto
-  ALTER COLUMN id_ptogto SET STATISTICS 0;
-
-ALTER TABLE sigep.tpresupuesto_gasto
-  ALTER COLUMN id_entidad SET STATISTICS 0;
 
 
 
 CREATE TABLE sigep.tprograma (
-  id_programa_boa SERIAL NOT NULL,
+  id_programa_boa SERIAL,
   id_catprg INTEGER NOT NULL,
   id_entidad INTEGER NOT NULL,
   programa INTEGER NOT NULL,
@@ -622,29 +356,6 @@ CREATE TABLE sigep.tprograma (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN id_programa_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN id_catprg SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN id_entidad SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN programa SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN desc_catprg SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN nivel SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN id_cp_programa SET STATISTICS 0;
-
-ALTER TABLE sigep.tprograma
-  ALTER COLUMN id_gestion SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tproyecto_actividad (
@@ -668,15 +379,6 @@ CREATE TABLE sigep.tproyecto_actividad (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tproyecto_actividad
-  ALTER COLUMN id_proyecto_actividad SET STATISTICS 0;
-
-ALTER TABLE sigep.tproyecto_actividad
-  ALTER COLUMN id_catprg SET STATISTICS 0;
-
-ALTER TABLE sigep.tproyecto_actividad
-  ALTER COLUMN id_entidad SET STATISTICS 0;
-
 
 CREATE TABLE sigep.tsigade (
   id_sigade SERIAL,
@@ -688,14 +390,6 @@ CREATE TABLE sigep.tsigade (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tsigade
-  ALTER COLUMN id_sigade SET STATISTICS 0;
-
-ALTER TABLE sigep.tsigade
-  ALTER COLUMN sigade SET STATISTICS 0;
-
-ALTER TABLE sigep.tsigade
-  ALTER COLUMN tipo_deuda SET STATISTICS 0;
 
 
 CREATE TABLE sigep.tunidad_ejecutora (
@@ -721,24 +415,4 @@ CREATE TABLE sigep.tunidad_ejecutora (
 
 WITH (oids = false);
 
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN id_unidad_ejecutora_boa SET STATISTICS 0;
-
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN id_ue SET STATISTICS 0;
-
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN id_da SET STATISTICS 0;
-
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN ue SET STATISTICS 0;
-
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN desc_ue SET STATISTICS 0;
-
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN id_unidad_ejecutora SET STATISTICS 0;
-
-ALTER TABLE sigep.tunidad_ejecutora
-  ALTER COLUMN id_gestion SET STATISTICS 0;
 /***********************************F-SCP-FEA-SIGEP-0-11/09/2017****************************************/
