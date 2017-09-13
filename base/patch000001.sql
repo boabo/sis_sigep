@@ -216,7 +216,7 @@ ALTER TABLE sigep.tcuenta_contable
 
 
 CREATE TABLE sigep.tdireccion_administrativa (
-  id_direccion_administrativa_boa INTEGER DEFAULT nextval('sigep.tdireccion_administrativa_id_direccion_administrativa_seq'::regclass) NOT NULL,
+  id_direccion_administrativa_boa SERIAL ,
   id_da INTEGER NOT NULL,
   id_entidad INTEGER NOT NULL,
   da INTEGER NOT NULL,
