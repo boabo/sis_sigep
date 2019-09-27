@@ -72,9 +72,10 @@ BEGIN
 						usu2.cuenta as usr_mod
 						from sigep.tsigep_adq sadq
 						inner join segu.tusuario usu1 on usu1.id_usuario = sadq.id_usuario_reg
-                        inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
 						left join segu.tusuario usu2 on usu2.id_usuario = sadq.id_usuario_mod
 				        where  ';
+
+                        --de ser necesario adicionar--inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
@@ -95,7 +96,7 @@ BEGIN
 
 		begin
 			--Sentencia de la consulta
-			--raise exception 'checkpoint CONSULTA BENEFICIARIO SIGEP: %', v_parametros.id_proveedor;
+			--raise exception 'checkpoint CONSULTA BENEFICIARIO SIGEP: %', v_parametros.id_sigep_adq;
 
             v_consulta:='SELECT
             		  sdet.id_sigep_adq,
@@ -123,7 +124,13 @@ BEGIN
                       sig.clase_gasto,
                       sig.momento,
                       sig.nro_preventivo,
-                      sdet.monto_benef
+                      sdet.monto_benef,
+                      sdet.liquido_pagable,
+                      sdet.multa as multa_mo,
+                      sdet.retencion as retencion_mo,
+                      sdet.cuenta_contable,
+                      sdet.sisin,
+                      sdet.otfin
               FROM sigep.tsigep_adq_det sdet
               inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
               left join segu.tusuario usu2 on usu2.id_usuario = sdet.id_usuario_mod
@@ -138,20 +145,52 @@ BEGIN
             return v_consulta;
 
 		end;
+         /*********************************
+ 	#TRANSACCION:  'SIGEP_DEL'
+ 	#DESCRIPCION:	Consulta para datos de envio al Sigep
+ 	#AUTOR:		rzabala
+ 	#FECHA:		04-06-2019 16:10:26
+	***********************************/
+
+	elsif(p_transaccion='SIGEP_DEL')then
+
+		begin
+			--Sentencia de la consulta
+			--raise exception 'checkpoint CONSULTA DESV/ELIMN SIGEP: %', v_parametros.id_int_comprobante;
+
+            v_consulta:='SELECT  	sig.id_service_request,
+									sig.nro_preventivo,
+        							sig.nro_comprometido,
+        							sig.nro_devengado,
+        							sdet.gestion
+							FROM sigep.tsigep_adq sig
+      							inner join segu.tusuario usu1 on usu1.id_usuario = sig.id_usuario_reg
+      							left join segu.tusuario usu2 on usu2.id_usuario = sig.id_usuario_mod
+      							inner join sigep.tsigep_adq_det sdet on sig.id_sigep_adq = sdet.id_sigep_adq
+    						WHERE sig.estado_reg = ''activo''
+    							and (sig.nro_preventivo, sig.nro_comprometido, sig.nro_devengado) is not null
+    							and sdet.nro_doc_rdo = '||v_parametros.id_int_comprobante;
+
+			--Definicion de la respuesta
+            v_consulta:=v_consulta||'group by sig.id_service_request, sig.nro_preventivo, sig.nro_comprometido, sig.nro_devengado, sig.fecha_reg, sdet.gestion';
+            --v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
+              --raise notice 'consulta: %', v_consulta;
+            --Devuelve la respuesta
+            return v_consulta;
+
+		end;
+
         /*********************************
- 	#TRANSACCION:  'OBING_REPR_SEL'
+ 	#TRANSACCION:  'SIGEP_REPR_SEL'
  	#DESCRIPCION:	Listar Datos para el Reporte
- 	#AUTOR:		ivaldivia
- 	#FECHA:		05-09-2018 20:34:32
+ 	#AUTOR:		rzabala
+ 	#FECHA:		05-06-2019 20:34:32
 	***********************************/
 
 	elsif(p_transaccion='SIGEP_REPR_SEL')then
 
     	begin
     		--Sentencia de la consulta
-
-
-
 			v_consulta:='select
             					sdet.id_sigep_adq
         					FROM sigep.tsigep_adq_det sdet

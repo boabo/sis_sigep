@@ -52,9 +52,24 @@ class ACTSigepAdqDet extends ACTbase{
         $this->res=$this->objFunc->cargarSigepAdqDet($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
-    function cargarSigepContDet(){//var_dump('cargarSigepContDet');
+    /*function cargarSigepContDet(){//var_dump('cargarSigepContDet');
         $this->objFunc=$this->create('MODSigepAdqDet');
         $this->res=$this->objFunc->cargarSigepContDet($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }*/
+    function cargarSigepCip(){//var_dump('cargarSigepContDet');
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarSigepCip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    function cargarSigepReguDet(){//var_dump('cargarSigepContDet');
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarSigepReguDet($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    function cargarSigepSip(){//var_dump('cargarSigepContDet');
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarSigepSip($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
 

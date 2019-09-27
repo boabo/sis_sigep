@@ -29,8 +29,13 @@ DECLARE
 	v_nombre_funcion        text;
 	v_mensaje_error         text;
 	v_id_sigep_adq			integer;
+    v_valores_input     	varchar[];
     v_consulta    			record;
     v_preve					record;
+    v_colnames				text[];
+    v_colcom				text[];
+    v_coldev				text[];
+    v_matriz				varchar[];
 
 BEGIN
 
@@ -155,6 +160,44 @@ BEGIN
             return v_resp;
 
 		end;
+        /*********************************
+ 	#TRANSACCION:  'SIGEP_REP'
+ 	#DESCRIPCION:	Registra la Consulta de Beneficiarios del Sigep
+ 	#AUTOR:		rzabala
+ 	#FECHA:		06-07-2019 15:10:26
+	***********************************/
+
+	elsif(p_transaccion='SIGEP_RESP')then
+
+		begin
+			--Sentencia de la consulta
+			--raise exception 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_parametros.id_beneficiario;
+
+           update sigep.tsigep_adq
+           set 	estado = 'finalizado',
+           		nro_preventivo = v_parametros.nro_preventivo::int4,
+           		nro_comprometido = v_parametros.nro_comprometido::int4,
+           	   	nro_devengado = v_parametros.nro_devengado::int4
+           where id_sigep_adq = v_parametros.id_sigep_adq;
+
+           select ad.nro_preventivo
+           into v_preve
+           from sigep.tsigep_adq ad
+           where ad.id_sigep_adq = v_parametros.id_sigep_adq;
+
+			--Definicion de la respuesta
+            --v_consulta:=v_consulta||v_parametros.filtro;
+            --raise exception 'checkpoint CONSULTA BENEFICIARIO SIGEP: %',v_consulta;
+            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Sigep registro beneficiario exitoso(a)');
+            v_resp = pxp.f_agrega_clave(v_resp,'nro_preventivo',v_parametros.nro_preventivo::varchar);
+            v_resp = pxp.f_agrega_clave(v_resp,'nro_comprometido',v_parametros.nro_comprometido::varchar);
+            v_resp = pxp.f_agrega_clave(v_resp,'nro_devengado',v_parametros.nro_devengado::varchar);
+
+            --Devuelve la respuesta
+            --raise notice 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_resp;
+            return v_resp;
+
+		end;
     /*********************************
  	#TRANSACCION:  'SIGEP_REG_BENEF'
  	#DESCRIPCION:	Registra la Consulta de Beneficiarios del Sigep
@@ -184,92 +227,46 @@ BEGIN
 
 		end;
  /*********************************
- 	#TRANSACCION:  'SIGEP_PREVE'
- 	#DESCRIPCION:	Registra la Consulta de etapa Preventivo del Sigep
+ 	#TRANSACCION:  'SIGEP_RESULT'
+ 	#DESCRIPCION:	Consulta mostrar mensajes de Respuesta del Sigep
  	#AUTOR:		rzabala
- 	#FECHA:		12-06-2019 09:42:26
+ 	#FECHA:		14-08-2019 18:00:26
 	***********************************/
 
-	elsif(p_transaccion='SIGEP_PREVE')then
+	elsif(p_transaccion='SIGEP_RESULT')then
 
 		begin
 			--Sentencia de la consulta
-			--raise exception 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_parametros.id_proveedor;
-            select (ARRAY(
-            SELECT 	  sdet.id_sigep_adq,
-                      sdet.clase_gasto_cip,
-                      sdet.fecha_elaboracion,
-                      sdet.gestion,
-                      sdet.id_ptogto,
-                      sdet.justificacion,
-                      sdet.moneda,
-                      sdet.monto_partida,
-                      sdet.nro_doc_rdo,
-                      sdet.sec_doc_rdo,
-                      sdet.tipo_doc_rdo,
-                      sdet.total_autorizado_mo,
-                      usu1.cuenta,
-                      sig.clase_gasto,
-                      sig.momento,
-                      sdet.id_fuente,
-                      sdet.id_organismo,
-                      sdet.beneficiario,
-                      sdet.banco_benef,
-                      sdet.cuenta_benef,
-                      sdet.banco_origen,
-                      sdet.cta_origen,
-                      sdet.libreta_origen,
-                      sig.nro_preventivo,
-                      sdet.usuario_apro
-                      --INTO v_preve
-              FROM sigep.tsigep_adq_det sdet
-              inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
-              left join segu.tusuario usu2 on usu2.id_usuario = sdet.id_usuario_mod
-              inner join sigep.tsigep_adq sig on sig.id_sigep_adq = sdet.id_sigep_adq
-              WHERE sdet.id_sigep_adq =v_parametros.id_sigep_adq))into v_preve;
+            --v_valores_input = string_to_array('419,420', ',');
+            v_valores_input = string_to_array(v_parametros.ids, ',');
+            	--raise exception 'checkpoint REGISTRO RESULTADO SIGEP: %', v_parametros.ids;
+            FOR i IN 1.. array_upper(v_valores_input, 1)
+			LOOP
+            --raise exception 'checkpoint REGISTRO RESULTADO SIGEP: %', v_valores_input[i];
+            v_colnames[i]:= (SELECT sig.nro_preventivo--, sig.nro_comprometido, sig.nro_devengado
+              FROM sigep.tsigep_adq sig
+              inner join segu.tusuario usu1 on usu1.id_usuario = sig.id_usuario_reg
+              left join segu.tusuario usu2 on usu2.id_usuario = sig.id_usuario_mod
+              WHERE sig.id_sigep_adq =v_valores_input[i]::int4);
+               v_colcom[i]:= (SELECT sig.nro_comprometido--, sig.nro_devengado
+              FROM sigep.tsigep_adq sig
+              inner join segu.tusuario usu1 on usu1.id_usuario = sig.id_usuario_reg
+              left join segu.tusuario usu2 on usu2.id_usuario = sig.id_usuario_mod
+              WHERE sig.id_sigep_adq =v_valores_input[i]::int4);
+              v_coldev[i]:= (SELECT sig.nro_devengado
+              FROM sigep.tsigep_adq sig
+              inner join segu.tusuario usu1 on usu1.id_usuario = sig.id_usuario_reg
+              left join segu.tusuario usu2 on usu2.id_usuario = sig.id_usuario_mod
+              WHERE sig.id_sigep_adq =v_valores_input[i]::int4);
+            	v_matriz[i]:=concat('Nro. Preventivo: ',v_colnames[i],' ||Nro. Compromiso: ', v_colcom[i],' ||Nro. Devengado: ', v_coldev[i]);
 
-              --v_preve = string_to_array(v_preve, ',');
-
-               raise exception 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_preve;
-
-                    UPDATE  sigep.tsigep_adq
-					SET estado = 'registrado'
-					WHERE id_sigep_adq =v_parametros.id_sigep_adq;
-
+            end loop;
+            --raise exception 'checkpoint REGISTRO RESULTADO SIGEP: %', v_matriz;
 
 			--Definicion de la respuesta
-            --raise exception 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_preve;
+
             v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Sigep registro beneficiario exitoso(a)');
-             FOR i IN 1.. array_upper(v_preve, 1)
-				LOOP
-            v_resp = pxp.f_agrega_clave(v_resp,'id_sigep_adq',v_preve[i]::varchar[]);
-            END loop;
-            /*v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Sigep registro beneficiario exitoso(a)');
-            v_resp = pxp.f_agrega_clave(v_resp,'id_sigep_adq',v_preve.id_sigep_adq::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'clase_gasto_cip',v_preve.clase_gasto_cip::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'fecha_elaboracion',v_preve.fecha_elaboracion::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'gestion',v_preve.gestion::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'id_ptogto',v_preve.id_ptogto::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'justificacion',v_preve.justificacion::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'moneda',v_preve.moneda::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'monto_partida',v_preve.monto_partida::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'nro_doc_rdo',v_preve.nro_doc_rdo::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'sec_doc_rdo',v_preve.sec_doc_rdo::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'tipo_doc_rdo',v_preve.tipo_doc_rdo::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'total_autorizado_mo',v_preve.total_autorizado_mo::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'usr_reg',v_preve.usr_reg::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'clase_gasto',v_preve.clase_gasto::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'momento',v_preve.momento::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'id_fuente',v_preve.id_fuente::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'id_organismo',v_preve.id_organismo::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'beneficiario',v_preve.beneficiario::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'banco_benef',v_preve.banco_benef::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'cuenta_benef',v_preve.cuenta_benef::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'banco_origen',v_preve.banco_origen::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'cta_origen',v_preve.cta_origen::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'libreta_origen',v_preve.libreta_origen::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'nro_preventivo',v_preve.nro_preventivo::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'usuario_apro',v_preve.usuario_apro::varchar);*/
+            v_resp = pxp.f_agrega_clave(v_resp,'matriz_result',v_matriz::varchar);
 
             --Devuelve la respuesta
             --raise notice 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_resp;
@@ -338,7 +335,6 @@ BEGIN
             return v_resp;
 
 		end;
-
 
 	/*********************************
  	#TRANSACCION:  'SIGEP_SADQ_MOD'

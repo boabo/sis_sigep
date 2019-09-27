@@ -121,7 +121,7 @@ class MODSigepAdq extends MODbase{
         //Devuelve la respuesta
         return $this->respuesta;
     }
-    function consultaPreventivo(){
+    function consultaMonSigep(){
 
         $this->procedimiento='sigep.ft_sigep_adq_sel';
         $this->transaccion='SIGEP_CONS';
@@ -157,6 +157,12 @@ class MODSigepAdq extends MODbase{
         $this->captura('momento','varchar');
         $this->captura('nro_preventivo','int4');
         $this->captura('monto_benef','numeric');
+        $this->captura('liquido_pagable','numeric');
+        $this->captura('multaMo','numeric');
+        $this->captura('retencionMo','numeric');
+        $this->captura('cuenta_contable','varchar');
+        $this->captura('sisin','varchar');
+        $this->captura('otfin','varchar');
         //$this->captura('total','numeric');
 
 
@@ -234,10 +240,11 @@ class MODSigepAdq extends MODbase{
         }
         return $this->respuesta;
     }*/
-    function registrarServiceERP($link, $list, $service_code){
+    function registrarServiceERP($link, $list, $service_code)
+    {
 
-        if($service_code == 'PREVE' || $service_code == 'COMPRDEVEN') {
-            $service=json_decode($list, true);
+        if ($service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION' || $service_code == 'REGULARIZA') {
+            $service = json_decode($list, true);
             //var_dump('datos en registrarService:',$list ["id_sigep_adq"]);exit;
 
             foreach ($service as $servicio) {
@@ -251,7 +258,7 @@ class MODSigepAdq extends MODbase{
                 $resumen = $servicio["justificacion"];
                 $moneda = $servicio["moneda"];
                 $total_autorizado = $servicio["total_autorizado_mo"];
-                $liquido_pagable = $servicio["total_autorizado_mo"];
+                $liquido_pagable = $servicio["liquido_pagable"];
                 $tipo_doc_rdo = $servicio["tipo_doc_rdo"];
                 $nro_doc_rdo = $servicio["nro_doc_rdo"];
                 $sec_doc_rdo = $servicio["sec_doc_rdo"];
@@ -269,26 +276,97 @@ class MODSigepAdq extends MODbase{
                 $banco_origen = $servicio["banco_origen"];
                 $cuenta_origen = $servicio["cta_origen"];
                 $libreta_origen = $servicio["libreta_origen"];
+                $multa_mo = $servicio["multamo"];
+                $retencion_mo = $servicio["retencionmo"];
+                $cuenta_contable = $servicio["cuenta_contable"];
+                $sisin = $servicio["sisin"];
+                $otfin = $servicio["otfin"];
             }
-            for($i=0; $i<count($service); ++$i){
+            for ($i = 0; $i < count($service); ++$i) {
                 $data[$i] = $service[$i];
-                //$stri = new stdClass();
-                $stri[$i]= array("idPtogto"=>$data[$i]["id_ptogto"],"montoMo"=>$data[$i]["monto_partida"]);
-                //strin[$i]= array("tipoDocRdo"=>$data[$i]["tipo_doc_rdo"], "tipoDocRdo"=>$data[$i]["tipo_doc_rdo"],);
-
+                if ($data[$i]["id_ptogto"] <> null) {
+                    if ($data[$i]["monto_partida"] == (0.87 * $data[$i]["liquido_pagable"])) {
+                        $stri[$i] = array("idPtogto" => $data[$i]["id_ptogto"], "montoMo" => $data[$i]["liquido_pagable"]);
+                    } else {
+                        //$stri = new stdClass();
+                        $stri[$i] = array("idPtogto" => $data[$i]["id_ptogto"], "montoMo" => $data[$i]["monto_partida"]);
+                        //strin[$i]= array("tipoDocRdo"=>$data[$i]["tipo_doc_rdo"], "tipoDocRdo"=>$data[$i]["tipo_doc_rdo"],);
+                    }
+                } else if ($data[$i]["cuenta_contable"] <> '') {
+                    $stri[$i] = array("cuentaContable" => $data[$i]["cuenta_contable"], "montoMo" => $data[$i]["monto_partida"]);
+                }
             }
 
         }
 
         //var_dump($fecha_elaboracion, $usuario, $gestion, $clase_gasto_cip, $resumen, $moneda, $total_autorizado, $liquido_pagable, $momento);exit;
 
-        $pxpRestClient = PxpRestClient2::connect('192.168.11.130', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+        $pxpRestClient = PxpRestClient2::connect('192.168.11.130', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
 
         //echo($pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest', $servicio));exit;
-        if($momento== 'PREVENTIVO'){
-            //var_dump('inserta PREVENTIVO');
+        if ($momento == 'CON_IMPUTACION') {
+            if ($moneda == '34' || $moneda == '69') {
+                $tipo = 'C';
+            } else {
+                $tipo = 'V';
+            }
 
-            $str = new stdClass();
+            if ($multa_mo <> '0') {
+                $str = new stdClass();
+                $str->usuario = "" . $usuario . "";
+                //$str->usuario_apro = "".$usuario_apro."";
+                $str->gestion = $gestion;
+                //$str->nroPreventivo = $nro_preventivo;
+                $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                $str->claseGastoCip = $clase_gasto_cip;
+                $str->idCatprv = null;
+                $str->sigade = null;
+                $str->otfin = null;
+                $str->resumenOperacion = "" . $resumen . "";
+                $str->moneda = $moneda;
+                $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                $str->compraVenta = "" . $tipo . "";
+                $str->totalAutorizadoMo = $total_autorizado;
+                $str->totalRetencionesMo = 0;
+                $str->totalMultasMo = $multa_mo;
+                $str->liquidoPagableMo = $liquido_pagable;
+                $str->partidas = $stri;
+                $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => 0);
+                $str->multas [] = array("multa" => "1.6", "montoMo" => "" . $multa_mo . "");
+                $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                $json = json_encode($str);
+                $service_code = 'CON_IMPUTACION_M';
+            } else {
+
+                $str = new stdClass();
+                $str->usuario = "" . $usuario . "";
+                //$str->usuario_apro = "".$usuario_apro."";
+                $str->gestion = $gestion;
+                //$str->nroPreventivo = $nro_preventivo;
+                $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                $str->claseGastoCip = $clase_gasto_cip;
+                $str->idCatprv = null;
+                $str->sigade = null;
+                $str->otfin = null;
+                $str->resumenOperacion = "" . $resumen . "";
+                $str->moneda = $moneda;
+                $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                $str->compraVenta = "" . $tipo . "";
+                $str->totalAutorizadoMo = $liquido_pagable;
+                $str->totalRetencionesMo = 0;
+                $str->totalMultasMo = 0;
+                $str->liquidoPagableMo = $liquido_pagable;
+                $str->partidas = $stri;
+                $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => "" . $multa_mo . "");
+                $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                $json = json_encode($str);
+                $service_code = 'CON_IMPUTACION';
+            }
+
+            /////////////////////PREVENTIVO/////////////////////
+            /*$str = new stdClass();
             $str->usuario = "".$usuario."";
             $str->usuario_apro = "".$usuario_apro."";
             $str->gestion = $gestion;
@@ -308,13 +386,72 @@ class MODSigepAdq extends MODbase{
             $str->partidas = $stri;
             $str->respaldos []= array("tipoDocRdo"=>"".$tipo_doc_rdo."", "nroDocRdo"=>"".$nro_doc_rdo."", "secDocRdo"=>"".$sec_doc_rdo."", "totalDocRdo"=>"".$total_doc_rdo."", "fechaElaboracionRdo"=>"".$fecha_elaboracion."", "fechaRecepcionRdo"=>"".$fecha_elaboracion."", "fechaVencimientoRdo"=>null);
             $json = json_encode($str);
-            $service_code = 'PREVE';
+            $service_code = 'PREVE';*/
+            //////////////////////PREVENTIVO////////////////////////
             //var_dump('arreglo:', $stri);exit;
             //var_dump('json envio sigep', $json, $service_code);exit;
 
-        }else if($momento == 'COMPROMETIDO-DEVENGADO'){
+        } else if ($momento == 'SIN_IMPUTACION') {
+            if ($moneda == '34' || $moneda == '69') {
+                $tipo = 'C';
+            } else {
+                $tipo = 'V';
+            }
+            if ($beneficiario <> '83797') {
+                $str = new stdClass();
+                $str->usuario = "" . $usuario . "";
+                //$str->usuario_apro = "".$usuario_apro."";
+                $str->gestion = $gestion;
+                //$str->nroPreventivo = $nro_preventivo;
+                $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                $str->claseGastoSip = $clase_gasto_cip;
+                $str->idCatprv = $sisin;
+                $str->sigade = null;
+                $str->otfin = $otfin;
+                $str->resumenOperacion = "" . $resumen . "";
+                $str->moneda = $moneda;
+                $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                $str->compraVenta = "" . $tipo . "";
+                $str->totalAutorizadoMo = $total_autorizado;
+                $str->totalRetencionesMo = $retencion_mo;
+                $str->totalMultasMo = $multa_mo;
+                $str->liquidoPagableMo = $liquido_pagable;
+                $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => "" . $multa_mo . "");
+                $str->contables = $stri;
+                $str->libretas [] = array("bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                $json = json_encode($str);
+                $service_code = 'SIN_IMPUTACION';
+            } else {
+                $str = new stdClass();
+                $str->usuario = "" . $usuario . "";
+                //$str->usuario_apro = "".$usuario_apro."";
+                $str->gestion = $gestion;
+                //$str->nroPreventivo = $nro_preventivo;
+                $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                $str->claseGastoSip = $clase_gasto_cip;
+                $str->idCatprv = $sisin;
+                $str->sigade = null;
+                $str->otfin = $otfin;
+                $str->resumenOperacion = "" . $resumen . "";
+                $str->moneda = $moneda;
+                $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                $str->compraVenta = "" . $tipo . "";
+                $str->totalAutorizadoMo = $total_autorizado;
+                $str->totalRetencionesMo = $retencion_mo;
+                $str->totalMultasMo = $multa_mo;
+                $str->liquidoPagableMo = $liquido_pagable;
+                $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => "" . $multa_mo . "");
+                $str->contables = $stri;
+                $str->libretas [] = array("bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                $json = json_encode($str);
+                $service_code = 'SIN_IMPUTACION_CP';
+        }
 
-            $str = new stdClass();
+
+            //////////////////COMPROMETIDO-DEVENGADO////////////////////////////
+            /*$str = new stdClass();
             $str->usuario = "".$usuario."";
             //$str->usuario_apro = "".$usuario_apro."";
             $str->gestion = $gestion;
@@ -337,21 +474,42 @@ class MODSigepAdq extends MODbase{
             $str->beneficiarios []= array("beneficiario"=>"".$beneficiario."", "banco"=>"".$banco_benef."", "cuenta"=>"".$cuenta_benef."", "montoMo"=>"".$monto_benef."");
             $str->libretas []= array("idFuente"=>"".$id_fuente."", "idOrganismo"=>"".$id_organismo."", "bancoOrigen"=>"".$banco_origen."", "cuentaOrigen"=>"".$cuenta_origen."", "libretaOrigen"=>"".$libreta_origen."");
             $json = json_encode($str);
-            $service_code = 'COMPRDEVEN';
+            $service_code = 'COMPRDEVEN';*/
+            //////////////////COMPROMETIDO-DEVENGADO////////////////////////////
 
-            //var_dump('json para enviar:', $json);exit;
 
-            /*var_dump('inserta COMPROMETIDO-DEVENGADO:');//, $servicio["usr_reg"], $servicio["gestion"], $servicio["nro_preventivo"], $fecha_elaboracion, $servicio["clase_gasto_cip"] );exit;
-            $variable = $pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest',
-                array(	"sys_origin"=>'erp',
-                    "json"=>'{"usuario":"'.$servicio["usr_reg"].'", "usuario_apro":"casiana.alvarez", "usuario_firm":"hugo.tapia", "gestion":'.$servicio["gestion"].', "nroPreventivo":'.$servicio["nro_preventivo"].', "fechaElaboracion":"'.$fecha_elaboracion.'", "claseGastoCip":'.$servicio["clase_gasto_cip"].', "idCatprv":null, "sigade":null, "otfin":null,"resumenOperacion":"'.$servicio["moneda"].'", "moneda":'.$servicio["moneda"].', "fechaTipoCambio":"'.$fecha_elaboracion.'", "compraVenta":"C", "totalAutorizadoMo":'.$servicio["total_autorizado_mo"].', "totalRetencionesMo":0, "totalMultasMo":0, "liquidoPagableMo":'.$servicio["total_autorizado_mo"].', "partidas":[{"idPtogto":'.$servicio["id_ptogto"].', "montoMo":'.$servicio["total_autorizado_mo"].'}], "respaldos":[{"tipoDocRdo":4, "nroDocRdo":7773, "secDocRdo":1, "totalDocRdo":1, "fechaElaboracionRdo":"'.$fecha_elaboracion.'", "fechaRecepcionRdo":"'.$fecha_elaboracion.'", "fechaVencimientoRdo":"'.$fecha_elaboracion.'"}], "beneficiarios":[{"beneficiario":'.$servicio["beneficiario"].', "banco":'.$servicio["banco_benef"].', "cuenta":'.$servicio["cuenta_benef"].', "montoMo":'.$servicio["total_autorizado_mo"].', "montoRetencionesMo":0, "montoMultasMo":0}], "libretas":[{"secEgaclib":1, "idFuente":'.$servicio["id_fuente"].', "idOrganismo":'.$servicio["id_organismo"].', "bancoOrigen":'.$servicio["banco_origen"].', "cuentaOrigen":"'.$servicio["cta_origen"].'", "libretaOrigen":"'.$servicio["libreta_origen"].'"}]}',
-                    "service_code"=>"COMPRDEVEN"
-                ));
-            $result= json_decode($variable, true);
-            $id_adq = $servicio['id_sigep_adq'];
-            $id_service_request=$result['ROOT']['datos']['id_service_request'];
-            $this->modificaInsertarERP($link, $id_adq, $id_service_request);
-            echo $variable;*/
+        }else if($momento == 'REGULARIZACION'){
+            if($moneda == '34'){
+                $tipo = 'C';
+            }else{
+                $tipo = 'V';
+            }
+
+            $str = new stdClass();
+            $str->usuario = "".$usuario."";
+            //$str->usuario_apro = "".$usuario_apro."";
+            $str->gestion = $gestion;
+            //$str->nroPreventivo = $nro_preventivo;
+            $str->fechaElaboracion = "".$fecha_elaboracion."";
+            $str->claseGastoCip = $clase_gasto_cip;
+            $str->idCatprv = null;
+            $str->sigade = null;
+            $str->otfin = null;
+            $str->resumenOperacion = "".$resumen."";
+            $str->moneda = $moneda;
+            $str->fechaTipoCambio = "".$fecha_elaboracion."";
+            $str->compraVenta = "".$tipo."";
+            $str->totalAutorizadoMo = $total_autorizado;
+            $str->totalRetencionesMo = 0;
+            $str->totalMultasMo = 0;
+            $str->liquidoPagableMo = $liquido_pagable;
+            $str->partidas = $stri;
+            $str->respaldos []= array("tipoDocRdo"=>"".$tipo_doc_rdo."", "nroDocRdo"=>"".$nro_doc_rdo."", "secDocRdo"=>"".$sec_doc_rdo."", "totalDocRdo"=>"".$sec_doc_rdo."", "fechaElaboracionRdo"=>"".$fecha_elaboracion."", "fechaRecepcionRdo"=>"".$fecha_elaboracion."", "fechaVencimientoRdo"=>"".$fecha_elaboracion."");
+            $str->beneficiarios []= array("beneficiario"=>"".$beneficiario."", "montoMo"=>"".$monto_benef."");
+            $str->libretas []= array("idFuente"=>"".$id_fuente."", "idOrganismo"=>"".$id_organismo."", "bancoOrigen"=>"".$banco_origen."", "cuentaOrigen"=>"".$cuenta_origen."", "libretaOrigen"=>"".$libreta_origen."");
+            $json = json_encode($str);
+            $service_code = 'REGULARIZA';
+
         }else if($service_code == 'BENEF'){
             $servicio=json_decode($list, true);
             //var_dump('beneficiario elaboracion:',$servicio);exit;
@@ -387,6 +545,26 @@ class MODSigepAdq extends MODbase{
                 $json = json_encode($str);
                 $service_code = 'BENEF';
             }
+        }else if($service_code == 'DEL'){
+            $servicio=json_decode($list, true);
+            //var_dump('beneficiario elaboracion:',$servicio);exit;
+            $usuario = 'clelia.soria';
+
+            $gestion = $servicio['gestion'];
+            $nro_preventivo = $servicio['nro_preventivo'];
+            $nro_compromiso = $servicio['nro_comprometido'];
+            $nro_devengado = $servicio['nro_devengado'];
+
+
+            $str = new stdClass();
+            $str->usuario = "" . $usuario . "";
+            $str->gestion = $gestion;
+            $str->nroPreventivo = $nro_preventivo;
+            $str->nroCompromiso = $nro_compromiso;
+            $str->nroDevengado =$nro_devengado;
+
+            $json = json_encode($str);
+            $service_code = 'DEL';
         }
         //var_dump('json cargado:', $json, $service_code);
         $variable = $pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest',
@@ -400,18 +578,34 @@ class MODSigepAdq extends MODbase{
         $id_service_request=$result['ROOT']['datos']['id_service_request'];
         //var_dump('esto es resultado antes de decode:', $id_service_request);
         $str = new stdClass();
-        if($service_code == 'PREVE') {
-            $this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
-            //var_dump('resultado registrado', $id_service_request);exit;
-            $this->ProcesarC31($id_service_request, $id_adq, 15);
-            $str->id_sigep_adq = "".$id_adq."";
-            //$this->modificaInsertarERP($link, $id_adq, $id_service_request);
-        }else if($service_code == 'COMPRDEVEN'){
+        if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_M'|| $service_code == 'SIN_IMPUTACION'|| $service_code = 'SIN_IMPUTACION_CP'){
             $this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
             //var_dump('resultado registrado', $id_service_request);exit;
             $this->ProcesarC31($id_service_request, $id_adq, 25);
             $str->id_sigep_adq = "".$id_adq."";
+            $str->service_code = "".$service_code."";
+            ////////////////////PREVENTIVO//////////////////////////
+            /*$this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
+            //var_dump('resultado registrado', $id_service_request);exit;
+            $this->ProcesarC31($id_service_request, $id_adq, 15);
+            $str->id_sigep_adq = "".$id_adq."";
+            //$this->modificaInsertarERP($link, $id_adq, $id_service_request);*/
+            ////////////////////PREVENTIVO//////////////////////////
+        }else if($service_code == 'nada'){
+            ////////////////////COMPROMETIDO-DEVENGADO//////////////////////////
+            /*$this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
+            //var_dump('resultado registrado', $id_service_request);exit;
+            $this->ProcesarC31($id_service_request, $id_adq, 25);
+            $str->id_sigep_adq = "".$id_adq."";
             $str->nroPreventivo = "".$nro_preventivo."";
+            $str->service_code = "".$service_code."";*/
+            ////////////////////COMPROMETIDO-DEVENGADO//////////////////////////
+        }else if($service_code == 'REGULARIZA'){
+            $this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
+            //var_dump('resultado registrado', $id_service_request);exit;
+            $this->ProcesarC31($id_service_request, $id_adq, 25);
+            $str->id_sigep_adq = "".$id_adq."";
+            $str->service_code = "".$service_code."";
         }else{
             $this->ProcesarC31('', '', 2);
             //$this->registroBeneficiarioERP($id_proveedor,$id_service_request);
@@ -488,6 +682,21 @@ class MODSigepAdq extends MODbase{
                 $str->nro_comprometido = "" . $nro_comprometido . "";
                 $str->nro_devengado = "" . $nro_devengado . "";
                 $str->id_sigep_adq = "" . $id_sigep_adq . "";
+                $str->service_code = "" . $service_code . "";
+
+                $this->actualizaEstadosC('finalizado', $id_service_request, $nro_comprometido, $nro_devengado, $resp, $id_adq);
+            }elseif($service_code == 'CON_IMPUTACION_M' || $service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION'|| $service_code == 'SIN_IMPUTACION_CP'){
+                $id_sigep_adq = $this->objParam->getParametro('id_sigep_adq');
+                $nro_preventivo = $result['ROOT']['datos']['output']['nroPreventivo'];
+                $nro_comprometido = $result['ROOT']['datos']['output']['nroCompromiso'];
+                $nro_devengado = $result['ROOT']['datos']['output']['nroDevengado'];
+
+                $str = new stdClass();
+                $str->nro_preventivo = "" . $nro_preventivo . "";
+                $str->nro_comprometido = "" . $nro_comprometido . "";
+                $str->nro_devengado = "" . $nro_devengado . "";
+                $str->id_sigep_adq = "" . $id_sigep_adq . "";
+                $str->service_code = "" . $service_code . "";
 
                 $this->actualizaEstadosC('finalizado', $id_service_request, $nro_comprometido, $nro_devengado, $resp, $id_adq);
             }else{
@@ -557,7 +766,31 @@ class MODSigepAdq extends MODbase{
         //var_dump('consulta benef:',$this->respuesta);
         return $this->respuesta;
     }
+    function registrarResultado(){
+
+        //var_dump('finalizado nro proveedor:',$id_proveedor);
+
+        $this->procedimiento='sigep.ft_sigep_adq_ime';
+        $this->transaccion='SIGEP_RESP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_sigep_adq','id_sigep_adq','int4');
+        $this->setParametro('nro_preventivo','nro_preventivo','varchar');
+        $this->setParametro('nro_comprometido','nro_comprometido','varchar');
+        $this->setParametro('nro_devengado','nro_devengado','varchar');
+
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump('consulta benef:',$this->respuesta);
+        return $this->respuesta;
+    }
     function actualizaEstados($estado, $dato, $preve, $mensaje, $valor) {
+        if ($preve == ''){
+            $preve = null;
+        }
         $cone = new conexion();
         $link = $cone->conectarpdo();
         //var_dump('actualizaEstadoERP:', $estado, $dato, $preve, $mensaje, $valor);
@@ -576,7 +809,7 @@ class MODSigepAdq extends MODbase{
     function actualizaEstadosC($estado, $dato, $compro, $deven, $mensaje, $valor) {
         $cone = new conexion();
         $link = $cone->conectarpdo();
-        //var_dump('actualizaEstadoERP:', $estado, $dato, $preve, $mensaje, $valor);
+        //var_dump('actualizaEstadoC:', $estado, $dato, $compro, $deven, $mensaje, $valor);
         $sql = "UPDATE  sigep.tsigep_adq
                 SET estado = '".$estado."',
                   id_service_request = ".$dato.",
@@ -641,6 +874,46 @@ class MODSigepAdq extends MODbase{
         //var_dump('actualizaEstadoERP:', $stmt);
         $stmt->execute($data);
         //var_dump('actualizaEstadoERP:', $stmt);
+    }
+    function resultadoMsg(){
+
+        $this->procedimiento='sigep.ft_sigep_adq_ime';
+        $this->transaccion='SIGEP_RESULT';
+        $this->tipo_procedimiento='IME';
+        $this->arreglo['ids_input'] = $this->objParam->getParametro('ids');
+        //var_dump('valores:', $this->arreglo['ids_input']);
+        //Define los parametros para la funcion
+        //$this->setParametro('id_proveedor','id_proveedor','int4');
+        $this->setParametro('ids','ids','text');
+
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        return $this->respuesta;
+    }
+    function consultaDelete(){
+
+        $this->procedimiento='sigep.ft_sigep_adq_sel';
+        $this->transaccion='SIGEP_DEL';
+        $this->tipo_procedimiento='SEL';
+        $this->count=false;
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_int_comprobante','id_int_comprobante','int4');
+
+        $this->captura('id_service_request','varchar');
+        $this->captura('nro_preventivo','int4');
+        $this->captura('nro_comprometido','int4');
+        $this->captura('nro_devengado','int4');
+        $this->captura('gestion','int4');
+        //$this->captura('total','numeric');
+
+
+        $this->armarConsulta();//var_dump($this->consulta);exit;
+        $this->ejecutarConsulta();
+
+        //var_dump('consulta preventivo:',$this->respuesta);exit;
+        return $this->respuesta;
     }
 
 }

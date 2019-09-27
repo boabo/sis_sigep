@@ -66,6 +66,11 @@ header("content-type: text/javascript; charset=UTF-8");
                 this.store.baseParams.sigep_adq = that.sigep_adq;
                 console.log('datos en sigep: ',that.sigep_adq, that.nro_tramite,  this.store.baseParams.num_tramite);
             }
+            if(that.sigep_adq == 'vbsigepcontaregu'){
+                this.store.baseParams.num_tramite = that.nro_tramite;
+                this.store.baseParams.sigep_adq = that.sigep_adq;
+                console.log('datos en sigep: ',that.sigep_adq, that.nro_tramite,  this.store.baseParams.num_tramite);
+            }
 
             this.load({params:{start:0, limit:this.tam_pag}})
         },
@@ -146,17 +151,18 @@ header("content-type: text/javascript; charset=UTF-8");
             {
                 config:{
                     name: 'momento',
-                    fieldLabel: 'Momentos',
+                    fieldLabel: 'Momentos (Pre-Com-Dev)',
                     allowBlank: true,
                     anchor: '80%',
-                    gwidth: 100,
+                    gwidth: 140,
                     maxLength:20,
                     renderer: function (value, p, record) {
-                        if (record.data['momento'] == 'PREVENTIVO') {
-                            return String.format('<div title="PREVENTIVO"><b><font color="#b8860b">{0}</font></b></div>', value);
-
+                        if (record.data['momento'] == 'CON_IMPUTACION') {
+                            return String.format('<div title="CON_IMPUTACION"><b><font color="#b8860b">{0}</font></b></div>', value);
+                        }else if(record.data['momento'] == 'REGULARIZACION'){
+                            return String.format('<div title="REGULA"><b><font color="#CD7232">{0}</font></b></div>', value);
                         } else {
-                            return String.format('<div title="DEVENGADO"><b><font color="gray">{0}</font></b></div>', value);
+                            return String.format('<div title="SIN_IMPUTACION"><b><font color="gray">{0}</font></b></div>', value);
                         }
                     }
                 },
@@ -261,7 +267,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     fieldLabel: 'Ultimo Mensaje',
                     allowBlank: true,
                     anchor: '80%',
-                    gwidth: 100,
+                    gwidth: 270,
                     maxLength:300,
                     renderer: function(value, p, record){
                         return String.format('<div title="Mensaje: {1}"><b><font color="black">{0}</font></b></div>', value, record.data.ultimo_mensaje);
@@ -279,7 +285,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     fieldLabel: 'Clase de Gasto',
                     allowBlank: true,
                     anchor: '80%',
-                    gwidth: 100,
+                    gwidth: 120,
                     maxLength:200
                 },
                 type:'TextField',
@@ -411,7 +417,7 @@ header("content-type: text/javascript; charset=UTF-8");
         ],
         sortInfo:{
             field: 'id_sigep_adq',
-            direction: 'ASC'
+            direction: 'DESC'
         },
         bdel:true,
         bsave:false,

@@ -25,7 +25,14 @@ class ACTSigepAdq extends ACTbase{
         if ( $this->objParam->getParametro('sigep_adq') == 'vbsigepconta' ) {
 
             $this->objParam->addFiltro("sadq.num_tramite::varchar = ''". $this->objParam->getParametro('num_tramite')."''::varchar and sadq.estado in(''pre-registro'',''registrado'',''procesando'',''finalizado'', ''error'') and sadq.momento in (''COMPROMETIDO-DEVENGADO'', ''PREVENTIVO'') and sadq.nro_preventivo is not null");
-            //$this->objParam->addFiltro("sadq.num_tramite::varchar = ''". $this->objParam->getParametro('num_tramite')."''::varchar and sadq.estado in(''pre-registro'',''registrado'',''procesando'',''finalizado'')");
+        }
+        if ( $this->objParam->getParametro('sigep_adq') == 'vbsigepcontaregu' ) {
+
+            $this->objParam->addFiltro("sadq.num_tramite::varchar = ''". $this->objParam->getParametro('num_tramite')."''::varchar and sadq.estado in(''pre-registro'',''registrado'',''procesando'',''finalizado'', ''error'') and sadq.momento in (''COMPROMETIDO-DEVENGADO'', ''PREVENTIVO'', ''REGULARIZACION'')");
+        }
+        if ( $this->objParam->getParametro('sigep_adq') == 'vbsigepsip' ) {
+
+            $this->objParam->addFiltro("sadq.num_tramite::varchar = ''". $this->objParam->getParametro('num_tramite')."''::varchar and sadq.estado in(''pre-registro'',''registrado'',''procesando'',''finalizado'', ''error'') and sadq.momento in (''COMPROMETIDO-DEVENGADO'', ''PREVENTIVO'', ''REGULARIZACION'')");
         }
 
         if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
@@ -74,15 +81,15 @@ class ACTSigepAdq extends ACTbase{
         $this->res=$this->objFunc->StatusC31($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
-    function updateC31(){
+    function resultadoMsg(){
         $this->objFunc=$this->create('MODSigepAdq');
-        $this->res=$this->objFunc->updateC31($this->objParam);
+        $this->res=$this->objFunc->resultadoMsg($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
-    function consultaPreventivo(){
+    function consultaMonSigep(){
 
         $this->objFunc=$this->create('MODSigepAdq');
-        $this->res=$this->objFunc->consultaPreventivo($this->objParam);
+        $this->res=$this->objFunc->consultaMonSigep($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
     function registrarPreventivo(){
@@ -97,10 +104,22 @@ class ACTSigepAdq extends ACTbase{
         $this->res=$this->objFunc->registrarComprometidoDevengado($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
+    function registrarResultado(){
+
+        $this->objFunc=$this->create('MODSigepAdq');
+        $this->res=$this->objFunc->registrarResultado($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
     function consultaBeneficiario(){
 
         $this->objFunc=$this->create('MODSigepAdq');
         $this->res=$this->objFunc->consultaBeneficiario($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    function consultaDelete(){
+
+        $this->objFunc=$this->create('MODSigepAdq');
+        $this->res=$this->objFunc->consultaDelete($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
     function registrarService(){

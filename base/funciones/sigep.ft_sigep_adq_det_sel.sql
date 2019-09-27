@@ -48,12 +48,12 @@ BEGIN
                         sad.id_sigep_adq,
 						sad.estado_reg,
 						sad.gestion,
-						sad.clase_gasto_cip,
-						sad.moneda,
+						sigad.clase_gasto as clase_gasto_cip,
+						mo.codigo as moneda,
 						sad.total_autorizado_mo,
 						sad.id_ptogto,
 						sad.monto_partida,
-						sad.tipo_doc_rdo,
+						doc.desc_documento as tipo_doc_rdo,
 						sad.nro_doc_rdo,
 						sad.sec_doc_rdo,
 						sad.fecha_elaboracion,
@@ -68,19 +68,29 @@ BEGIN
 						sad.fecha_mod,
 						usu1.cuenta as usr_reg,
 						usu2.cuenta as usr_mod,
-                        sad.beneficiario,
+                        pro.rotulo_comercial as beneficiario,
                         sad.banco_benef,
                         sad.cuenta_benef,
                         sad.banco_origen,
                         sad.cta_origen,
                         sad.libreta_origen,
                         sad.usuario_apro,
-                        sad.monto_benef
+                        sad.monto_benef,
+                        sad.multa,
+                        sad.retencion,
+                        sad.liquido_pagable,
+                        sad.cuenta_contable,
+                        sad.sisin,
+                        sad.otfin
 						from sigep.tsigep_adq_det sad
 						inner join segu.tusuario usu1 on usu1.id_usuario = sad.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = sad.id_usuario_mod
                         left join sigep.tsigep_adq sigad on sigad.id_sigep_adq = sad.id_sigep_adq
-				        where  ';
+                        left join sigep.tmoneda smo on smo.moneda = sad.moneda
+                        left join param.tmoneda mo on mo.id_moneda = smo.id_moneda
+                        left join sigep.tdocumento_respaldo doc on doc.documento_respaldo = sad.tipo_doc_rdo
+                        left join param.tproveedor pro on pro.id_beneficiario = sad.beneficiario
+                        where';
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;

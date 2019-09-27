@@ -91,7 +91,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 {
                     config:{
                         name: 'clase_gasto_cip',
-                        fieldLabel: 'clase Gasto Cip',
+                        fieldLabel: 'clase Gasto',
                         allowBlank: true,
                         anchor: '80%',
                         gwidth: 100,
@@ -144,6 +144,44 @@ header("content-type: text/javascript; charset=UTF-8");
                 },
                 {
                     config:{
+                        name: 'sisin',
+                        fieldLabel: 'SISIN',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:300,
+                        renderer: function(value, p, record){
+                            return String.format('<b style="color:gray; ">{0}</b>', record.data['sisin']);
+                        }
+
+                    },
+                    type:'TextField',
+                    filters:{pfiltro:'sad.sisin',type:'string'},
+                    id_grupo:1,
+                    grid:true,
+                    form:true
+                },
+                {
+                    config:{
+                        name: 'otfin',
+                        fieldLabel: 'OTFIN',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:300,
+                        renderer: function(value, p, record){
+                            return String.format('<b style="color:gray; ">{0}</b>', record.data['otfin']);
+                        }
+
+                    },
+                    type:'TextField',
+                    filters:{pfiltro:'sad.otfin',type:'string'},
+                    id_grupo:1,
+                    grid:true,
+                    form:true
+                },
+                {
+                    config:{
                         name: 'id_ptogto',
                         fieldLabel: 'Id Presupuesto Gasto',
                         allowBlank: true,
@@ -156,6 +194,24 @@ header("content-type: text/javascript; charset=UTF-8");
                     },
                     type:'NumberField',
                     filters:{pfiltro:'sad.id_ptogto',type:'numeric'},
+                    id_grupo:1,
+                    grid:true,
+                    form:true
+                },
+                {
+                    config:{
+                        name: 'cuenta_contable',
+                        fieldLabel: 'Cuenta Contable',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:7,
+                        renderer: function(value, p, record){
+                            return String.format('<b style="color:darkslategray; ">{0}</b>', record.data['cuenta_contable']);
+                        }
+                    },
+                    type:'TextField',
+                    filters:{pfiltro:'sad.cuenta_contable',type:'string'},
                     id_grupo:1,
                     grid:true,
                     form:true
@@ -389,6 +445,63 @@ header("content-type: text/javascript; charset=UTF-8");
                 },
                 {
                     config:{
+                        name: 'multa',
+                        fieldLabel: 'Multas',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:1179650,
+                        renderer: function(value, p, record){
+                            return String.format('<b style="color:darkblue; ">{0}</b>', Ext.util.Format.number(record.data['multa'],'0,000.00'));
+                            //String.format('<div style="color:green; text-align:right; font-weight:bold;"><b>{0}</b></div>', Ext.util.Format.number(value,'0,000.00'));
+                        }
+                    },
+                    type:'Field',
+                    filters:{pfiltro:'sad.multa',type:'numeric'},
+                    id_grupo:1,
+                    grid:true,
+                    form:false
+                },
+                {
+                    config:{
+                        name: 'retencion',
+                        fieldLabel: 'Retenciones',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:1179650,
+                        renderer: function(value, p, record){
+                            return String.format('<b style="color:darkblue; ">{0}</b>', Ext.util.Format.number(record.data['retencion'],'0,000.00'));
+                            //String.format('<div style="color:green; text-align:right; font-weight:bold;"><b>{0}</b></div>', Ext.util.Format.number(value,'0,000.00'));
+                        }
+                    },
+                    type:'Field',
+                    filters:{pfiltro:'sad.retencion',type:'numeric'},
+                    id_grupo:1,
+                    grid:true,
+                    form:false
+                },
+                {
+                    config:{
+                        name: 'liquido_pagable',
+                        fieldLabel: 'Liquido Pagable',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:1179650,
+                        renderer: function(value, p, record){
+                            return String.format('<b style="color:red; ">{0}</b>', Ext.util.Format.number(record.data['liquido_pagable'],'0,000.00'));
+                            //String.format('<div style="color:green; text-align:right; font-weight:bold;"><b>{0}</b></div>', Ext.util.Format.number(value,'0,000.00'));
+                        }
+                    },
+                    type:'Field',
+                    filters:{pfiltro:'sad.liquido_pagable',type:'numeric'},
+                    id_grupo:1,
+                    grid:true,
+                    form:false
+                },
+                {
+                    config:{
                         name: 'beneficiario',
                         fieldLabel: 'Beneficiario',
                         allowBlank: true,
@@ -551,6 +664,12 @@ header("content-type: text/javascript; charset=UTF-8");
                 {name:'cta_origen', type: 'string'},
                 {name:'libreta_origen', type: 'string'},
                 {name:'monto_benef', type: 'numeric'},
+                {name:'multa', type: 'numeric'},
+                {name:'retencion', type: 'numeric'},
+                {name:'liquido_pagable', type: 'numeric'},
+                {name:'cuenta_contable', type: 'varchar'},
+                {name:'sisin', type: 'varchar'},
+                {name:'otfin', type: 'varchar'},
 
             ],
             sortInfo:{
