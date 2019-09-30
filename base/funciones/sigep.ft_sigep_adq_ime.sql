@@ -161,7 +161,7 @@ BEGIN
 
 		end;
         /*********************************
- 	#TRANSACCION:  'SIGEP_REP'
+ 	#TRANSACCION:  'SIGEP_RESP'
  	#DESCRIPCION:	Registra la Consulta de Beneficiarios del Sigep
  	#AUTOR:		rzabala
  	#FECHA:		06-07-2019 15:10:26

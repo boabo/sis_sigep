@@ -463,6 +463,9 @@ CREATE TABLE sigep.tsigep_adq_det (
   multa NUMERIC(18,2),
   retencion NUMERIC(18,2),
   liquido_pagable NUMERIC(18,2),
+  cuenta_contable VARCHAR(30),
+  sisin VARCHAR(30),
+  otfin VARCHAR(30),
   CONSTRAINT tsigep_adq_det_pkey PRIMARY KEY(id_sigep_adq_det)
 ) INHERITS (pxp.tbase)
 WITH (oids = false);
