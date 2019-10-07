@@ -417,6 +417,10 @@ WITH (oids = false);
 
 /***********************************F-SCP-FEA-SIGEP-0-11/09/2017****************************************/
 /***********************************F-SCP-RZM-SIGEP-0-05/07/2019****************************************/
+
+ALTER TABLE sigep.tproyecto_actividad
+  ALTER COLUMN proyecto TYPE VARCHAR(25);
+
 CREATE TABLE sigep.tsigep_adq (
   id_sigep_adq SERIAL,
   num_tramite VARCHAR(200),
@@ -459,20 +463,18 @@ CREATE TABLE sigep.tsigep_adq_det (
   cta_origen VARCHAR(20),
   libreta_origen VARCHAR(20),
   monto_benef NUMERIC(18,2),
-  usuario_apro VARCHAR(20),
+  usuario_apro VARCHAR(30),
   multa NUMERIC(18,2),
   retencion NUMERIC(18,2),
   liquido_pagable NUMERIC(18,2),
   cuenta_contable VARCHAR(30),
   sisin VARCHAR(30),
   otfin VARCHAR(30),
+  usuario_firm VARCHAR(30),
   CONSTRAINT tsigep_adq_det_pkey PRIMARY KEY(id_sigep_adq_det)
 ) INHERITS (pxp.tbase)
 WITH (oids = false);
 
 ALTER TABLE sigep.tsigep_adq_det
   OWNER TO postgres;
-
-ALTER TABLE param.tproveedor
-  ADD COLUMN id_beneficiario VARCHAR(15);
 /***********************************F-SCP-RZM-SIGEP-0-05/07/2019****************************************/

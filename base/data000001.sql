@@ -559,7 +559,7 @@ VALUES
   (612, NULL, E'2017-09-08 10:35:59.260', E'2017-09-08 10:35:59.260', E'activo', NULL, NULL, 45, 3018, E'6004487267', E'BOLIVIANA DE AVIACION - MIAMI (RECAUDADORA)', 34, E'E', E'V', NULL);
 
 /* Data for the 'sigep.tlibreta' table  (Records 1 - 4) */
-TRUNCATE TABLE sigep.tlibreta
+TRUNCATE TABLE sigep.tlibreta;
 INSERT INTO sigep.tlibreta ("id_usuario_reg", "id_usuario_mod", "fecha_reg", "fecha_mod", "estado_reg", "id_usuario_ai", "usuario_ai", "id_libreta_boa", "banco", "cuenta", "id_libreta", "libreta", "desc_libreta", "moneda", "estado_libre", "id_cuenta_bancaria")
 VALUES
   (612, 1, E'2017-09-08 11:20:07.084', E'2019-07-11 11:00:25.235', E'activo', NULL, E'NULL', 1, 1004, E'3987069001', 10478, E'00578012002', E'BOA-BOLIVIANA DE AVIACION-INGRESOS', 69, E'V', 61),
@@ -2121,3 +2121,19 @@ VALUES
   (1, 1, E'2019-07-09 15:16:33.325', E'2019-07-09 15:21:04.767', E'activo', NULL, E'NULL', 54, 1320797, 494, 21, E'5780001000000', 0, E'CONST. HANGAR Y TALLERES DE MANTENIMIENTO BOA - AEROPUERTO COCHABAMBA', E'PROYECTO', 442152, 322);
 
 /*******************************************F-DAT-RZM-SIGEP-0-19/09/2019***********************************************/
+
+/*******************************************I-DAT-FEA-SIGEP-0-01/10/2019***********************************************/
+select pxp.f_insert_tgui ('MONITOR SERVICIOS', 'MONITOR SERVICIOS', 'MSRV', 'si', 1, '', 2, '', '', 'SIGEP');
+select pxp.f_insert_tgui ('Servicios SIGEP', 'Servicios SIGEP', 'SRVS', 'si', 1, 'sis_sigep/vista/sigep_adq/SigepAdq.php', 3, '', 'SigepAdq', 'SIGEP');
+select pxp.f_insert_tgui ('Sigep Token', 'Sigep Token', 'STK', 'si', 2, 'sis_sigep/vista/sigep_adq/iFrameToken.php', 4, '', 'redirectSigep', 'SIGEP');
+
+select wf.f_import_ttipo_estado ('insert','vbconta','CBTE','VB Contabilidad','no','no','no','listado','','anterior','','','si','si',NULL,'<font color="99CC00" size="5"><font size="4">{TIPO_PROCESO}</font></font><br><br><b>&nbsp;</b>Tramite:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <b>{NUM_TRAMITE}</b><br><b>&nbsp;</b>Usuario :<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {USUARIO_PREVIO} </b>en estado<b>&nbsp; {ESTADO_ANTERIOR}<br></b>&nbsp;<b>Responsable:&nbsp;&nbsp; &nbsp;&nbsp; </b><b>{FUNCIONARIO_PREVIO}&nbsp; {DEPTO_PREVIO}<br>&nbsp;</b>Estado Actual<b>: &nbsp; &nbsp;&nbsp; {ESTADO_ACTUAL}</b><br><br><br>&nbsp;{OBS} <br>','Aviso WF ,  {PROCESO_MACRO}  ({NUM_TRAMITE})','','no','','','','','','','',NULL);
+select wf.f_import_ttipo_estado ('insert','vbfin','CBTE','VB Finanzas','no','no','no','listado','','anterior','','','si','si',NULL,'<font color="99CC00" size="5"><font size="4">{TIPO_PROCESO}</font></font><br><br><b>&nbsp;</b>Tramite:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <b>{NUM_TRAMITE}</b><br><b>&nbsp;</b>Usuario :<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {USUARIO_PREVIO} </b>en estado<b>&nbsp; {ESTADO_ANTERIOR}<br></b>&nbsp;<b>Responsable:&nbsp;&nbsp; &nbsp;&nbsp; </b><b>{FUNCIONARIO_PREVIO}&nbsp; {DEPTO_PREVIO}<br>&nbsp;</b>Estado Actual<b>: &nbsp; &nbsp;&nbsp; {ESTADO_ACTUAL}</b><br><br><br>&nbsp;{OBS} <br>','Aviso WF ,  {PROCESO_MACRO}  ({NUM_TRAMITE})','','no','','','','','','','',NULL);
+
+select wf.f_import_testructura_estado ('insert','borrador','vbconta','CBTE',1,'');
+select wf.f_import_testructura_estado ('insert','vbconta','vbfin','CBTE',1,'');
+select wf.f_import_testructura_estado ('insert','vbfin','validado','CBTE',1,'');
+
+select wf.f_import_tfuncionario_tipo_estado ('insert','vbfin','CBTE','2874060',NULL,'');
+select wf.f_import_tfuncionario_tipo_estado ('insert','vbconta','CBTE','2872145',NULL,'');
+/*******************************************F-DAT-FEA-SIGEP-0-01/10/2019***********************************************/

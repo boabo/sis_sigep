@@ -130,7 +130,8 @@ BEGIN
                       sdet.retencion as retencion_mo,
                       sdet.cuenta_contable,
                       sdet.sisin,
-                      sdet.otfin
+                      sdet.otfin,
+                      sdet.usuario_firm
               FROM sigep.tsigep_adq_det sdet
               inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
               left join segu.tusuario usu2 on usu2.id_usuario = sdet.id_usuario_mod

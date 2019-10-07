@@ -180,10 +180,18 @@ BEGIN
            	   	nro_devengado = v_parametros.nro_devengado::int4
            where id_sigep_adq = v_parametros.id_sigep_adq;
 
-           select ad.nro_preventivo
+           select ad.nro_doc_rdo, sad.momento
            into v_preve
-           from sigep.tsigep_adq ad
+           from sigep.tsigep_adq_det ad
+           inner join sigep.tsigep_adq sad on sad.id_sigep_adq = ad.id_sigep_adq
            where ad.id_sigep_adq = v_parametros.id_sigep_adq;
+
+           update conta.tint_comprobante
+           	set c31 = case when v_preve.momento = 'SIN_IMPUTACION' THEN
+            					upper(concat('SIP ',v_parametros.nro_devengado)) ELSE
+            					upper(concat('CIP ',v_parametros.nro_preventivo)) end
+            where id_int_comprobante = v_preve.nro_doc_rdo;
+
 
 			--Definicion de la respuesta
             --v_consulta:=v_consulta||v_parametros.filtro;
@@ -417,7 +425,6 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
-PARALLEL UNSAFE
 COST 100;
 
 ALTER FUNCTION sigep.ft_sigep_adq_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)

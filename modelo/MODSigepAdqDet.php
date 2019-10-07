@@ -58,6 +58,7 @@ class MODSigepAdqDet extends MODbase{
         $this->captura('cuenta_contable','varchar');
         $this->captura('sisin','varchar');
         $this->captura('otfin','varchar');
+        $this->captura('usuario_firm','varchar');
 
 
         //Ejecuta la instruccion

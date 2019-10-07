@@ -163,6 +163,7 @@ class MODSigepAdq extends MODbase{
         $this->captura('cuenta_contable','varchar');
         $this->captura('sisin','varchar');
         $this->captura('otfin','varchar');
+        $this->captura('usuario_firm','varchar');
         //$this->captura('total','numeric');
 
 
@@ -267,6 +268,7 @@ class MODSigepAdq extends MODbase{
                 $id_adq = $servicio["id_sigep_adq"];
                 $nro_preventivo = $servicio["nro_preventivo"];
                 $usuario_apro = $servicio["usuario_apro"];
+                $usuario_firm = $servicio["usuario_firm"];
                 $id_fuente = $servicio["id_fuente"];
                 $id_organismo = $servicio["id_organismo"];
                 $beneficiario = $servicio["beneficiario"];
@@ -314,7 +316,8 @@ class MODSigepAdq extends MODbase{
             if ($multa_mo <> '0') {
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
-                //$str->usuario_apro = "".$usuario_apro."";
+                $str->user_apro = "".$usuario_apro."";
+                $str->user_firm = "".$usuario_firm."";
                 $str->gestion = $gestion;
                 //$str->nroPreventivo = $nro_preventivo;
                 $str->fechaElaboracion = "" . $fecha_elaboracion . "";
@@ -341,7 +344,8 @@ class MODSigepAdq extends MODbase{
 
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
-                //$str->usuario_apro = "".$usuario_apro."";
+                $str->user_apro = "".$usuario_apro."";
+                $str->user_firm = "".$usuario_firm."";
                 $str->gestion = $gestion;
                 //$str->nroPreventivo = $nro_preventivo;
                 $str->fechaElaboracion = "" . $fecha_elaboracion . "";
@@ -400,9 +404,9 @@ class MODSigepAdq extends MODbase{
             if ($beneficiario <> '83797') {
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
-                //$str->usuario_apro = "".$usuario_apro."";
+                $str->user_apro = "".$usuario_apro."";
+                $str->user_firm = "".$usuario_firm."";
                 $str->gestion = $gestion;
-                //$str->nroPreventivo = $nro_preventivo;
                 $str->fechaElaboracion = "" . $fecha_elaboracion . "";
                 $str->claseGastoSip = $clase_gasto_cip;
                 $str->idCatprv = $sisin;
@@ -425,7 +429,6 @@ class MODSigepAdq extends MODbase{
             } else {
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
-                //$str->usuario_apro = "".$usuario_apro."";
                 $str->gestion = $gestion;
                 //$str->nroPreventivo = $nro_preventivo;
                 $str->fechaElaboracion = "" . $fecha_elaboracion . "";

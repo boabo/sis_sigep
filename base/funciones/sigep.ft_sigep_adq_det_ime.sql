@@ -44,7 +44,10 @@ DECLARE
     cuenta_apro				varchar;
     v_nro_tramite			varchar;
     v_total					numeric;
-    v_i					integer;
+    v_i						integer;
+    v_aprobador				varchar;
+    v_firmador				varchar;
+    v_user					integer;
 
 BEGIN
 
@@ -544,8 +547,44 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 	elseif(p_transaccion='SIGEP_CIP_CHAR')then
          begin
         --raise exception 'LLEGO AL SERVICIO SIGEP REGULARIZAR: %', v_parametros.momento;
+        select id_estado_wf, id_usuario_reg
+            into v_record_sol
+            from conta.tint_comprobante
+            where id_proceso_wf = v_parametros.id_proceso_wf;
         v_i = 1;
         --v_array_str = '';
+         FOR v_record IN (WITH RECURSIVE firmas(id_estado_fw, id_estado_anterior,fecha_reg, codigo, id_funcionario) AS (
+                                SELECT tew.id_estado_wf, tew.id_estado_anterior , tew.fecha_reg, te.codigo, tew.id_funcionario
+                                FROM wf.testado_wf tew
+                                INNER JOIN wf.ttipo_estado te ON te.id_tipo_estado = tew.id_tipo_estado
+                                WHERE tew.id_estado_wf = v_record_sol.id_estado_wf
+
+                                UNION ALL
+
+                                SELECT ter.id_estado_wf, ter.id_estado_anterior, ter.fecha_reg, te.codigo, ter.id_funcionario
+                                FROM wf.testado_wf ter
+                                INNER JOIN firmas f ON f.id_estado_anterior = ter.id_estado_wf
+                                INNER JOIN wf.ttipo_estado te ON te.id_tipo_estado = ter.id_tipo_estado
+                                WHERE f.id_estado_anterior IS NOT NULL
+                            )SELECT distinct on (codigo) codigo, fecha_reg , id_estado_fw, id_estado_anterior, id_funcionario FROM firmas ORDER BY codigo, fecha_reg DESC) LOOP
+                  		IF(v_record.codigo = 'borrador')THEN
+                  			v_user = v_record_sol.id_usuario_reg;--(select us.cuenta
+                            				--from  segu.vusuario us
+                                            --where us.id_usuario = v_record_sol.id_usuario_reg);
+                        END IF;
+                        IF(v_record.codigo = 'vbconta')THEN
+                  			v_aprobador = (select us.cuenta
+                            				from orga.vfuncionario fun
+                                              inner join segu.vusuario us on us.id_persona = fun.id_persona
+                                            where fun.id_funcionario = v_record.id_funcionario);
+                        END IF;
+                  		IF(v_record.codigo = 'vbfin')THEN
+                        	 v_firmador = (select us.cuenta
+                            				from orga.vfuncionario fun
+                                              inner join segu.vusuario us on us.id_persona = fun.id_persona
+                                            where fun.id_funcionario = v_record.id_funcionario);
+                     	END IF;
+              END LOOP;
 
        	FOR v_datos_sigep in ( SELECT  cob.nro_tramite,
         								tcg.nombre,
@@ -597,7 +636,7 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
             null,
             null,
             null,
-			p_id_usuario,
+			v_user,
 			now(),
 			v_parametros._id_usuario_ai,
 			v_parametros._nombre_usuario_ai,
@@ -698,9 +737,13 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 		            cta_origen,
 		            libreta_origen,
 		            monto_benef,
+                    usuario_apro,
                     multa,
                     retencion,
                     liquido_pagable,
+                    sisin,
+                    otfin,
+                    usuario_firm,
 					id_usuario_reg,
 					fecha_reg,
 					id_usuario_ai,
@@ -730,10 +773,14 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
         		    v_registros.cuenta,
 		            v_registros.libreta,
 		            v_registros.liquido_pagable,
+                    v_aprobador,
                     v_registros.multas,
                     v_registros.retenciones,
                     v_registros.liquido_pagable,
-					p_id_usuario,
+                    '',
+                    '',
+                    v_firmador,
+					v_user,
 					now(),
 					v_parametros._id_usuario_ai,
 					v_parametros._nombre_usuario_ai,
@@ -993,8 +1040,44 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 		begin
         --raise exception 'llego comprobante:%', v_parametros.id_int_comprobante;
 			--Sentencia de la modificacion
+            select id_estado_wf, id_usuario_reg
+            into v_record_sol
+            from conta.tint_comprobante
+            where id_int_comprobante = v_parametros.id_int_comprobante;
              v_i = 1;
         --v_array_str = '';
+         FOR v_record IN (WITH RECURSIVE firmas(id_estado_fw, id_estado_anterior,fecha_reg, codigo, id_funcionario) AS (
+                                SELECT tew.id_estado_wf, tew.id_estado_anterior , tew.fecha_reg, te.codigo, tew.id_funcionario
+                                FROM wf.testado_wf tew
+                                INNER JOIN wf.ttipo_estado te ON te.id_tipo_estado = tew.id_tipo_estado
+                                WHERE tew.id_estado_wf = v_record_sol.id_estado_wf
+
+                                UNION ALL
+
+                                SELECT ter.id_estado_wf, ter.id_estado_anterior, ter.fecha_reg, te.codigo, ter.id_funcionario
+                                FROM wf.testado_wf ter
+                                INNER JOIN firmas f ON f.id_estado_anterior = ter.id_estado_wf
+                                INNER JOIN wf.ttipo_estado te ON te.id_tipo_estado = ter.id_tipo_estado
+                                WHERE f.id_estado_anterior IS NOT NULL
+                            )SELECT distinct on (codigo) codigo, fecha_reg , id_estado_fw, id_estado_anterior, id_funcionario FROM firmas ORDER BY codigo, fecha_reg DESC) LOOP
+                  		IF(v_record.codigo = 'borrador')THEN
+                  			v_user = v_record_sol.id_usuario_reg;--(select us.cuenta
+                            				--from  segu.vusuario us
+                                            --where us.id_usuario = v_record_sol.id_usuario_reg);
+                        END IF;
+                        IF(v_record.codigo = 'vbconta')THEN
+                  			v_aprobador = (select us.cuenta
+                            				from orga.vfuncionario fun
+                                              inner join segu.vusuario us on us.id_persona = fun.id_persona
+                                            where fun.id_funcionario = v_record.id_funcionario);
+                        END IF;
+                  		IF(v_record.codigo = 'vbfin')THEN
+                        	 v_firmador = (select us.cuenta
+                            				from orga.vfuncionario fun
+                                              inner join segu.vusuario us on us.id_persona = fun.id_persona
+                                            where fun.id_funcionario = v_record.id_funcionario);
+                     	END IF;
+              END LOOP;
 
        	FOR v_datos_sigep in (select cob.nro_tramite,
 										tcg.nombre,
@@ -1042,7 +1125,7 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
             null,
             null,
             null,
-			p_id_usuario,
+			v_user,
 			now(),
 			v_parametros._id_usuario_ai,
 			v_parametros._nombre_usuario_ai,
@@ -1137,12 +1220,14 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 		            cta_origen,
 		            libreta_origen,
 		            monto_benef,
+                    usuario_apro,
                     multa,
                     retencion,
                     liquido_pagable,
                     cuenta_contable,
                     sisin,
                     otfin,
+                    usuario_firm,
 					id_usuario_reg,
 					fecha_reg,
 					id_usuario_ai,
@@ -1172,13 +1257,15 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
         		    v_registros.cuenta,
 		            v_registros.libreta,
 		            v_datos_sigep.monto,
+                    v_aprobador,
                     '0',
                     '0',
                     v_registros.liquido_pagable,
                     v_registros.cuenta_contable,
                     '',
                     '',
-					p_id_usuario,
+                    v_firmador,
+					v_user,
 					now(),
 					v_parametros._id_usuario_ai,
 					v_parametros._nombre_usuario_ai,
@@ -1292,7 +1379,6 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
-PARALLEL UNSAFE
 COST 100;
 
 ALTER FUNCTION sigep.ft_sigep_adq_det_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
