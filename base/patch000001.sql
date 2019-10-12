@@ -416,7 +416,7 @@ CREATE TABLE sigep.tunidad_ejecutora (
 WITH (oids = false);
 
 /***********************************F-SCP-FEA-SIGEP-0-11/09/2017****************************************/
-/***********************************F-SCP-RZM-SIGEP-0-05/07/2019****************************************/
+/***********************************I-SCP-RZM-SIGEP-0-05/07/2019****************************************/
 
 ALTER TABLE sigep.tproyecto_actividad
   ALTER COLUMN proyecto TYPE VARCHAR(25);

@@ -46,7 +46,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     autoEl: {
                         tag: 'iframe',
                         //http://sigeppre-wl12.sigma.gob.bo/rsseguridad/loginapi.html?redirect_uri=http://www.cliente.com.bo/recibeauth
-                        src: 'http://sigeppre-wl12.sigma.gob.bo/rsseguridad/login.html?redirect_uri=http://192.168.11.130/kerp/sis_sigep/control/ActionInitRefreshToken.php',
+                        src: 'https://sigeppruebas-wl12.sigma.gob.bo/rsseguridad/login.html?redirect_uri=http://10.150.0.90/kerp/sis_sigep/control/ActionInitRefreshToken.php',
                     }}]
             });
 

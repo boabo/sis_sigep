@@ -303,7 +303,7 @@ class MODSigepAdq extends MODbase{
 
         //var_dump($fecha_elaboracion, $usuario, $gestion, $clase_gasto_cip, $resumen, $moneda, $total_autorizado, $liquido_pagable, $momento);exit;
 
-        $pxpRestClient = PxpRestClient2::connect('192.168.11.130', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
+        $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
 
         //echo($pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest', $servicio));exit;
         if ($momento == 'CON_IMPUTACION') {
@@ -529,7 +529,7 @@ class MODSigepAdq extends MODbase{
             $fecha_nacimiento = date("d-m-Y", strtotime($servicio['datos']['fecha_nacimiento']));
             //var_dump('objeto desde successSegip:', $servicio);exit;
 
-            if($id_institucion == '') {
+            if($nit == '') {
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
                 $str->numeroDocumento = $ci;
@@ -630,7 +630,7 @@ class MODSigepAdq extends MODbase{
         //$valor = 2;
         $x = 0;
 
-        $pxpRestClient = PxpRestClient2::connect('192.168.11.130', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+        $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
         $this->actualizaEstados('procesando', $id_service_request, '','', $id_adq);
         while($x <= $valor) {
 
@@ -654,7 +654,7 @@ class MODSigepAdq extends MODbase{
         $service_code = $this->objParam->getParametro('service_code');
         $id_adq = $this->objParam->getParametro('id_sigep_adq');
         //var_dump('llego a status:',$id_service_request);exit;
-        $pxpRestClient = PxpRestClient2::connect('192.168.11.130', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+        $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
 
         $variable = $pxpRestClient->doPost('sigep/ServiceRequest/getServiceStatus',
             array(	"id_service_request"=>''.$id_service_request.''
