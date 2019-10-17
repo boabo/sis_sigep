@@ -283,6 +283,7 @@ class MODSigepAdq extends MODbase{
                 $cuenta_contable = $servicio["cuenta_contable"];
                 $sisin = $servicio["sisin"];
                 $otfin = $servicio["otfin"];
+                $cod_multa = $servicio["cod_multa"];
             }
             for ($i = 0; $i < count($service); ++$i) {
                 $data[$i] = $service[$i];
@@ -336,7 +337,7 @@ class MODSigepAdq extends MODbase{
                 $str->partidas = $stri;
                 $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
                 $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => 0);
-                $str->multas [] = array("multa" => "1.6", "montoMo" => "" . $multa_mo . "");
+                $str->multas [] = array("multa" => "". $cod_multa ."", "montoMo" => "" . $multa_mo . "");
                 $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
                 $json = json_encode($str);
                 $service_code = 'CON_IMPUTACION_M';

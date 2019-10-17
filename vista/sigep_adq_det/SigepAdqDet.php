@@ -445,6 +445,21 @@ header("content-type: text/javascript; charset=UTF-8");
                 },
                 {
                     config:{
+                        name: 'cod_multa',
+                        fieldLabel: 'Tipo Multa',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:4
+                    },
+                    type:'Field',
+                    filters:{pfiltro:'sad.cod_multa',type:'string'},
+                    id_grupo:1,
+                    grid:true,
+                    form:false
+                },
+                {
+                    config:{
                         name: 'multa',
                         fieldLabel: 'Multas',
                         allowBlank: true,
