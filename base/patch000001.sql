@@ -416,3 +416,65 @@ CREATE TABLE sigep.tunidad_ejecutora (
 WITH (oids = false);
 
 /***********************************F-SCP-FEA-SIGEP-0-11/09/2017****************************************/
+/***********************************I-SCP-RZM-SIGEP-0-05/07/2019****************************************/
+
+ALTER TABLE sigep.tproyecto_actividad
+  ALTER COLUMN proyecto TYPE VARCHAR(25);
+
+CREATE TABLE sigep.tsigep_adq (
+  id_sigep_adq SERIAL,
+  num_tramite VARCHAR(200),
+  estado VARCHAR(50),
+  momento VARCHAR(50),
+  ultimo_mensaje VARCHAR(1000),
+  clase_gasto VARCHAR(200),
+  id_service_request VARCHAR(10),
+  nro_preventivo INTEGER,
+  nro_comprometido INTEGER,
+  nro_devengado INTEGER,
+  CONSTRAINT tsigep_adq_pkey PRIMARY KEY(id_sigep_adq)
+) INHERITS (pxp.tbase)
+WITH (oids = false);
+
+ALTER TABLE sigep.tsigep_adq
+  OWNER TO postgres;
+
+
+CREATE TABLE sigep.tsigep_adq_det (
+  id_sigep_adq_det SERIAL,
+  gestion INTEGER,
+  clase_gasto_cip INTEGER,
+  moneda INTEGER,
+  total_autorizado_mo NUMERIC(18,2),
+  id_ptogto INTEGER,
+  monto_partida NUMERIC(18,2),
+  tipo_doc_rdo INTEGER,
+  nro_doc_rdo INTEGER,
+  sec_doc_rdo INTEGER,
+  fecha_elaboracion DATE,
+  justificacion VARCHAR(700),
+  id_sigep_adq INTEGER NOT NULL,
+  beneficiario VARCHAR(20),
+  banco_benef VARCHAR(20),
+  cuenta_benef VARCHAR(50),
+  id_fuente VARCHAR(10),
+  id_organismo VARCHAR(10),
+  banco_origen VARCHAR(10),
+  cta_origen VARCHAR(20),
+  libreta_origen VARCHAR(20),
+  monto_benef NUMERIC(18,2),
+  usuario_apro VARCHAR(30),
+  multa NUMERIC(18,2),
+  retencion NUMERIC(18,2),
+  liquido_pagable NUMERIC(18,2),
+  cuenta_contable VARCHAR(30),
+  sisin VARCHAR(30),
+  otfin VARCHAR(30),
+  usuario_firm VARCHAR(30),
+  CONSTRAINT tsigep_adq_det_pkey PRIMARY KEY(id_sigep_adq_det)
+) INHERITS (pxp.tbase)
+WITH (oids = false);
+
+ALTER TABLE sigep.tsigep_adq_det
+  OWNER TO postgres;
+/***********************************F-SCP-RZM-SIGEP-0-05/07/2019****************************************/

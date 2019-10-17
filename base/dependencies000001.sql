@@ -32,3 +32,10 @@ select pxp.f_insert_testructura_gui ('SIGADE', 'CLACON');
 select pxp.f_insert_testructura_gui ('OTFIN', 'CLACON');
 
 /***********************************F-DEP-FEA-SIGEP-0-11/09/2017*****************************************/
+
+
+/***********************************I-DEP-FEA-SIGEP-0-01/10/2019*****************************************/
+select pxp.f_insert_testructura_gui ('MSRV', 'sigep');
+select pxp.f_insert_testructura_gui ('SRVS', 'MSRV');
+select pxp.f_insert_testructura_gui ('STK', 'MSRV');
+/***********************************F-DEP-FEA-SIGEP-0-01/10/2019*****************************************/

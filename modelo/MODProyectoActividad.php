@@ -27,7 +27,7 @@ class MODProyectoActividad extends MODbase{
 		$this->captura('id_categoria_programatica','int4');
 		$this->captura('programa','int4');
 		$this->captura('id_entidad','int4');
-		$this->captura('proyecto','int4');
+		$this->captura('proyecto','varchar');
 		$this->captura('nivel','varchar');
 		$this->captura('estado_reg','varchar');
 		$this->captura('actividad','int4');
@@ -62,7 +62,7 @@ class MODProyectoActividad extends MODbase{
 		$this->setParametro('id_categoria_programatica','id_categoria_programatica','int4');
 		$this->setParametro('programa','programa','int4');
 		$this->setParametro('id_entidad','id_entidad','int4');
-		$this->setParametro('proyecto','proyecto','int4');
+		$this->setParametro('proyecto','proyecto','varchar');
 		$this->setParametro('nivel','nivel','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
 		$this->setParametro('actividad','actividad','int4');
@@ -89,7 +89,7 @@ class MODProyectoActividad extends MODbase{
 		$this->setParametro('id_categoria_programatica','id_categoria_programatica','int4');
 		$this->setParametro('programa','programa','int4');
 		$this->setParametro('id_entidad','id_entidad','int4');
-		$this->setParametro('proyecto','proyecto','int4');
+		$this->setParametro('proyecto','proyecto','varchar');
 		$this->setParametro('nivel','nivel','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
 		$this->setParametro('actividad','actividad','int4');

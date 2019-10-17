@@ -62,7 +62,8 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 	onButtonEdit: function () {
 		Phx.vista.CuentaContable.superclass.onButtonEdit.call(this);
 		var rec = this.getSelectedData();
-		this.Cmp.id_cuenta.store.baseParams = {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', tipo_cuenta:'gasto', id_gestion: rec.id_gestion};
+		//this.Cmp.id_cuenta.store.baseParams = {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', tipo_cuenta:'pasivo', id_gestion: rec.id_gestion};//anterior filtro
+        this.Cmp.id_cuenta.store.baseParams = {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', id_gestion: rec.id_gestion};
 	},
 
 	Atributos:[

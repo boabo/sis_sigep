@@ -123,6 +123,7 @@ Phx.vista.PresupuestoGasto=Ext.extend(Phx.gridInterfaz,{
 				maxLength:1179650
 			},
 			type:'NumberField',
+            bottom_filter:true,
 			filters:{pfiltro:'pre_gas.id_ptogto',type:'numeric'},
 			id_grupo:0,
 			grid:true,
@@ -251,6 +252,7 @@ Phx.vista.PresupuestoGasto=Ext.extend(Phx.gridInterfaz,{
 				maxLength:1179650
 			},
 			type:'NumberField',
+            bottom_filter:true,
 			filters:{pfiltro:'pre_gas.id_objeto',type:'numeric'},
 			id_grupo:1,
 			grid:true,

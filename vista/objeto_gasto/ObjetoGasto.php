@@ -171,7 +171,7 @@ Phx.vista.ObjetoGasto=Ext.extend(Phx.gridInterfaz,{
 					fields: ['id_partida','codigo','nombre_partida','tipo','sw_movimiento'],
 					// turn on remote sorting
 					remoteSort: true,
-					baseParams: {par_filtro:'par.codigo#par.nombre_partida',sw_transaccional:'movimiento'}
+					baseParams: {par_filtro:'par.codigo#par.nombre_partida#par.id_gestion',sw_transaccional:'movimiento'}
 				}),
 				valueField: 'id_partida',
 				displayField: 'nombre_partida',

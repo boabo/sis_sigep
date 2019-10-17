@@ -124,11 +124,11 @@ Phx.vista.ProyectoActividad=Ext.extend(Phx.gridInterfaz,{
 				allowBlank: false,
 				anchor: '100%',
 				gwidth: 100,
-				maxLength:4
+				maxLength:15
 			},
 			type:'NumberField',
 			bottom_filter: true,
-			filters:{pfiltro:'pro_act.proyecto',type:'numeric'},
+			filters:{pfiltro:'pro_act.proyecto',type:'string'},
 			id_grupo:0,
 			grid:true,
 			form:true
@@ -381,7 +381,7 @@ Phx.vista.ProyectoActividad=Ext.extend(Phx.gridInterfaz,{
 		{name:'id_categoria_programatica', type: 'numeric'},
 		{name:'programa', type: 'numeric'},
 		{name:'id_entidad', type: 'numeric'},
-		{name:'proyecto', type: 'numeric'},
+		{name:'proyecto', type: 'string'},
 		{name:'nivel', type: 'string'},
 		{name:'estado_reg', type: 'string'},
 		{name:'actividad', type: 'numeric'},
