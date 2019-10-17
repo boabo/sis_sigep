@@ -478,3 +478,16 @@ WITH (oids = false);
 ALTER TABLE sigep.tsigep_adq_det
   OWNER TO postgres;
 /***********************************F-SCP-RZM-SIGEP-0-05/07/2019****************************************/
+
+/***********************************I-SCP-MAY-SIGEP-0-17/10/2019****************************************/
+CREATE TABLE sigep.tmulta (
+  id_multa SERIAL,
+  codigo VARCHAR(50),
+  desc_multa VARCHAR(300),
+  CONSTRAINT tmulta_pkey PRIMARY KEY(id_multa)
+) INHERITS (pxp.tbase)
+WITH (oids = false);
+
+ALTER TABLE sigep.tmulta
+  OWNER TO postgres;
+/***********************************F-SCP-MAY-SIGEP-0-17/10/2019****************************************/
