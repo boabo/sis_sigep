@@ -164,6 +164,7 @@ class MODSigepAdq extends MODbase{
         $this->captura('sisin','varchar');
         $this->captura('otfin','varchar');
         $this->captura('usuario_firm','varchar');
+        $this->captura('cod_multa','varchar');
         //$this->captura('total','numeric');
 
 
@@ -282,8 +283,10 @@ class MODSigepAdq extends MODbase{
                 $retencion_mo = $servicio["retencionmo"];
                 $cuenta_contable = $servicio["cuenta_contable"];
                 $sisin = $servicio["sisin"];
+                $idCatproy = $servicio["sisin"];
                 $otfin = $servicio["otfin"];
                 $cod_multa = $servicio["cod_multa"];
+                //var_dump($sisin);
             }
             for ($i = 0; $i < count($service); ++$i) {
                 $data[$i] = $service[$i];
@@ -307,11 +310,18 @@ class MODSigepAdq extends MODbase{
         $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
 
         //echo($pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest', $servicio));exit;
+
         if ($momento == 'CON_IMPUTACION') {
             if ($moneda == '34' || $moneda == '69') {
                 $tipo = 'C';
             } else {
                 $tipo = 'V';
+            }
+            if($sisin ==255429 || $sisin == 331891 || $sisin == 350238){
+                //var_dump('catproy:', (string)$sisin);
+                $otfin = 'BOA-FINPRO-2018';
+            }else{
+                $otfin = null;
             }
 
             if ($multa_mo <> '0') {
@@ -323,9 +333,9 @@ class MODSigepAdq extends MODbase{
                 //$str->nroPreventivo = $nro_preventivo;
                 $str->fechaElaboracion = "" . $fecha_elaboracion . "";
                 $str->claseGastoCip = $clase_gasto_cip;
-                $str->idCatprv = null;
+                $str->idCatpry = $idCatproy;
                 $str->sigade = null;
-                $str->otfin = null;
+                $str->otfin = $otfin;
                 $str->resumenOperacion = "" . $resumen . "";
                 $str->moneda = $moneda;
                 $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
@@ -336,7 +346,7 @@ class MODSigepAdq extends MODbase{
                 $str->liquidoPagableMo = $liquido_pagable;
                 $str->partidas = $stri;
                 $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
-                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => 0);
+                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => 0, "montoMultasMo" => 0);
                 $str->multas [] = array("multa" => "". $cod_multa ."", "montoMo" => "" . $multa_mo . "");
                 $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
                 $json = json_encode($str);
@@ -351,9 +361,9 @@ class MODSigepAdq extends MODbase{
                 //$str->nroPreventivo = $nro_preventivo;
                 $str->fechaElaboracion = "" . $fecha_elaboracion . "";
                 $str->claseGastoCip = $clase_gasto_cip;
-                $str->idCatprv = null;
+                $str->idCatpry =$idCatproy;
                 $str->sigade = null;
-                $str->otfin = null;
+                $str->otfin = $otfin;
                 $str->resumenOperacion = "" . $resumen . "";
                 $str->moneda = $moneda;
                 $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
