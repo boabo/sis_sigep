@@ -4,7 +4,7 @@
  *@file gen-MODSigepAdq.php
  *@author  (rzabala)
  *@date 15-03-2019 21:10:26
- *@description Clase que envia los parametros requeridos a la Base de datos para la ejecuciostatusC31n de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
+ *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion status C31 de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
  */
 include_once(dirname(__FILE__).'/../rest/PxpRestSigep.php');
 //include_once(dirname(__FILE__).'/../../lib/rest/PxpRestSigep.php');
@@ -165,6 +165,11 @@ class MODSigepAdq extends MODbase{
         $this->captura('otfin','varchar');
         $this->captura('usuario_firm','varchar');
         $this->captura('cod_multa','varchar');
+        $this->captura('cod_retencion','varchar');
+        $this->captura('total_retencion','numeric');
+        $this->captura('mes_rdo','int4');
+        $this->captura('tipo_rdo','varchar');
+        $this->captura('tipo_contrato','varchar');
         //$this->captura('total','numeric');
 
 
@@ -242,6 +247,7 @@ class MODSigepAdq extends MODbase{
         }
         return $this->respuesta;
     }*/
+    /*////////Recorre la Matriz que se Genera en el Monitor de Servicios y armado del JSON para Registro en el Bus de Servicio////////*/
     function registrarServiceERP($link, $list, $service_code)
     {
 
@@ -267,7 +273,7 @@ class MODSigepAdq extends MODbase{
                 $total_doc_rdo = $servicio["total_doc_rdo"];
                 $momento = $servicio["momento"];
                 $id_adq = $servicio["id_sigep_adq"];
-                $nro_preventivo = $servicio["nro_preventivo"];
+                $tipo_contrato = $servicio["tipo_contrato"];
                 $usuario_apro = $servicio["usuario_apro"];
                 $usuario_firm = $servicio["usuario_firm"];
                 $id_fuente = $servicio["id_fuente"];
@@ -286,21 +292,52 @@ class MODSigepAdq extends MODbase{
                 $idCatproy = $servicio["sisin"];
                 $otfin = $servicio["otfin"];
                 $cod_multa = $servicio["cod_multa"];
+                $cod_retencion = $servicio["cod_retencion"];
+                $total_retenciones = $servicio["total_retencion"];
+                $mesRdo = $servicio["mes_rdo"];
+                $tipoRdo = $servicio["tipo_rdo"];
                 //var_dump($sisin);
             }
+            $stri = array();
+            $ret = array();
             for ($i = 0; $i < count($service); ++$i) {
                 $data[$i] = $service[$i];
                 if ($data[$i]["id_ptogto"] <> null) {
                     if ($data[$i]["monto_partida"] == (0.87 * $data[$i]["liquido_pagable"])) {
-                        $stri[$i] = array("idPtogto" => $data[$i]["id_ptogto"], "montoMo" => $data[$i]["liquido_pagable"]);
+                        $stri[] = array("idPtogto" => $data[$i]["id_ptogto"], "montoMo" => $data[$i]["liquido_pagable"]);
                     } else {
                         //$stri = new stdClass();
-                        $stri[$i] = array("idPtogto" => $data[$i]["id_ptogto"], "montoMo" => $data[$i]["monto_partida"]);
-                        //strin[$i]= array("tipoDocRdo"=>$data[$i]["tipo_doc_rdo"], "tipoDocRdo"=>$data[$i]["tipo_doc_rdo"],);
+                        $stri[] = array("idPtogto" => $data[$i]["id_ptogto"], "montoMo" => $data[$i]["monto_partida"]);
+                        //stri[$i]= array("tipoDocRdo"=>$data[$i]["tipo_doc_rdo"], "tipoDocRdo"=>$data[$i]["tipo_doc_rdo"],);
                     }
                 } else if ($data[$i]["cuenta_contable"] <> '') {
-                    $stri[$i] = array("cuentaContable" => $data[$i]["cuenta_contable"], "montoMo" => $data[$i]["monto_partida"]);
+                    $stri[] = array("cuentaContable" => $data[$i]["cuenta_contable"], "montoMo" => $data[$i]["monto_partida"]);
                 }
+                if ($data[$i]["cod_retencion"] <> '') {
+                    $ret[] = array("acreedor" => $data[$i]["cod_retencion"], "montoMo" => $data[$i]["retencionmo"]);
+                }
+            }
+            //var_dump('resultado',$ret);exit;
+            $acreedor="";
+            $montoA="";
+            $array_destino =array();
+            if(!empty($ret) && $tipo_contrato == "EVE"){
+                foreach($ret as $valor){
+                    $repeat=false;
+                    for($i=0;$i<count($array_destino);$i++)
+                    {
+                        if($array_destino[$i]['acreedor']==$valor['acreedor'])
+                        {
+                            $array_destino[$i]['montoMo']+=$valor['montoMo'];
+                            $repeat=true;
+                            break;
+                        }
+                    }
+                    if($repeat==false)
+                        $array_destino[] = array('acreedor' => $valor['acreedor'], 'montoMo' => $valor['montoMo']);
+                }
+                //$ret = array_replace($ret, $array_destino);
+                //var_dump('resultado array:', $ret);exit;
             }
 
         }
@@ -310,8 +347,9 @@ class MODSigepAdq extends MODbase{
         $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
 
         //echo($pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest', $servicio));exit;
+        //var_dump('momentos_:', $momento);exit;
 
-        if ($momento == 'CON_IMPUTACION') {
+        if ($momento == "CON_IMPUTACION") {
             if ($moneda == '34' || $moneda == '69') {
                 $tipo = 'C';
             } else {
@@ -324,7 +362,7 @@ class MODSigepAdq extends MODbase{
                 $otfin = null;
             }
 
-            if ($multa_mo <> '0') {
+            if (!empty($cod_multa)) {
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
                 $str->user_apro = "".$usuario_apro."";
@@ -351,8 +389,37 @@ class MODSigepAdq extends MODbase{
                 $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
                 $json = json_encode($str);
                 $service_code = 'CON_IMPUTACION_M';
+                //var_dump("JSON de multa:", $cod_multa);exit;
+            } else if (!empty($cod_retencion)){
+                if($tipo_contrato == 'EVE'){
+                    $reten = $array_destino;
+                }else{
+                    $reten = $ret;
+                }
+                $str = new stdClass();
+                $str->usuario = "" . $usuario . "";
+                $str->user_apro = "".$usuario_apro."";
+                $str->user_firm = "".$usuario_firm."";
+                $str->gestion = $gestion;
+                $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                $str->claseGastoCip = $clase_gasto_cip;
+                $str->resumenOperacion = "" . $resumen . "";
+                $str->moneda = $moneda;
+                $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                $str->compraVenta = "" . $tipo . "";
+                $str->totalAutorizadoMo = $total_autorizado;
+                $str->totalRetencionesMo = $total_retenciones;
+                $str->totalMultasMo = 0;
+                $str->liquidoPagableMo = $liquido_pagable;
+                $str->partidas = $stri;
+                $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "gestionRdo" => "" . $gestion . "","mesRdo" => "" . $mesRdo . "","tipoRdo" => "" . $tipoRdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => 0, "montoMultasMo" => 0);
+                $str->multas [] = array("multa" => "". $cod_multa ."", "montoMo" => "" . $multa_mo . "");
+                $str->retenciones = $reten;
+                $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                $json = json_encode($str);
+                $service_code = 'PLANI';
             } else {
-
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
                 $str->user_apro = "".$usuario_apro."";
@@ -368,7 +435,7 @@ class MODSigepAdq extends MODbase{
                 $str->moneda = $moneda;
                 $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
                 $str->compraVenta = "" . $tipo . "";
-                $str->totalAutorizadoMo = $liquido_pagable;
+                $str->totalAutorizadoMo = $total_autorizado;
                 $str->totalRetencionesMo = 0;
                 $str->totalMultasMo = 0;
                 $str->liquidoPagableMo = $liquido_pagable;
@@ -406,7 +473,7 @@ class MODSigepAdq extends MODbase{
             //var_dump('arreglo:', $stri);exit;
             //var_dump('json envio sigep', $json, $service_code);exit;
 
-        } else if ($momento == 'SIN_IMPUTACION') {
+        } else if ($momento == "SIN_IMPUTACION") {
             if ($moneda == '34' || $moneda == '69') {
                 $tipo = 'C';
             } else {
@@ -580,7 +647,7 @@ class MODSigepAdq extends MODbase{
             $json = json_encode($str);
             $service_code = 'DEL';
         }
-        //var_dump('json cargado:', $json, $service_code);
+        //var_dump('json cargado:', $json, $service_code);exit;
         $variable = $pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest',
             array(	"sys_origin"=>'erp',
                 "json"=>''.$json.'',
@@ -636,6 +703,7 @@ class MODSigepAdq extends MODbase{
         return $this->respuesta;
         //return $json;
     }
+    /*////////Realiza el procesamiento de los Microservicios Registrados en el Bus de Servicio////////*/
     function ProcesarC31($id_service_request , $id_adq, $valor) {
 
         //$valor = 2;
@@ -659,6 +727,7 @@ class MODSigepAdq extends MODbase{
         $this->respuesta->setDatos($str);
         return $this->respuesta;
     }
+    /*////////Realiza una consulta al bus de Servicios para extraer el estado del Id Service request elaborado y procesado del Bus de Servicio////////*/
     function StatusC31 (){
 
         $id_service_request = $this->objParam->getParametro('id_service_request');
@@ -780,6 +849,7 @@ class MODSigepAdq extends MODbase{
         //var_dump('consulta benef:',$this->respuesta);
         return $this->respuesta;
     }
+    /*////////Realiza un Registro del Nros. Preventivo, Compromiso y Devengado. Despues de las Consultas en el Monitor de Servicios ERP////////*/
     function registrarResultado(){
 
         //var_dump('finalizado nro proveedor:',$id_proveedor);
@@ -801,6 +871,7 @@ class MODSigepAdq extends MODbase{
         //var_dump('consulta benef:',$this->respuesta);
         return $this->respuesta;
     }
+    /*////////Realiza una Actualizacion del Estado en el Cbte CIP, Despues de las Consultas en el Monitor de Servicios ERP////////*/
     function actualizaEstados($estado, $dato, $preve, $mensaje, $valor) {
         if ($preve == ''){
             $preve = null;
@@ -820,6 +891,7 @@ class MODSigepAdq extends MODbase{
         $stmt->execute();
         //var_dump('actualizaEstadoERP:', $stmt);
     }
+    /*////////Realiza una Actualizacion del Estado en el Cbte SIP, Despues de las Consultas en el Monitor de Servicios ERP////////*/
     function actualizaEstadosC($estado, $dato, $compro, $deven, $mensaje, $valor) {
         $cone = new conexion();
         $link = $cone->conectarpdo();
@@ -837,7 +909,7 @@ class MODSigepAdq extends MODbase{
         $stmt->execute();
         //var_dump('actualizaEstadoERP:', $stmt);
     }
-
+    /*////////Realiza una consulta para enviar datos para el Beneficiario del ERP////////*/
     function consultaBeneficiario(){
 
         $this->procedimiento='sigep.ft_sigep_adq_ime';
@@ -855,6 +927,7 @@ class MODSigepAdq extends MODbase{
         //var_dump('consulta benef:',$this->respuesta);
         return $this->respuesta;
     }
+    /*////////Realiza un Registro del Nro. Beneficiario en la tabla Proveedores en el ERP////////*/
     function registrarBeneficiario(){
 
         //var_dump('finalizado nro proveedor:',$id_proveedor);
@@ -874,6 +947,7 @@ class MODSigepAdq extends MODbase{
         //var_dump('consulta benef:',$this->respuesta);
         return $this->respuesta;
     }
+    /*////////Actualiza el mensaje generado despues de un Error de envio////////*/
     function actualizaError($estado, $dato, $mensaje, $valor) {
         $cone = new conexion();
         $link = $cone->conectarpdo();
@@ -889,6 +963,7 @@ class MODSigepAdq extends MODbase{
         $stmt->execute($data);
         //var_dump('actualizaEstadoERP:', $stmt);
     }
+    /*////////Crea una matriz con los resultados obtenidos del Sigep////////*/
     function resultadoMsg(){
 
         $this->procedimiento='sigep.ft_sigep_adq_ime';

@@ -100,58 +100,115 @@ Phx.vista.Acreedor=Ext.extend(Phx.gridInterfaz,{
 			form:true
 		},
 
-		{
-			config: {
-				name: 'id_tipo_obligacion_columna',
-				fieldLabel: 'Obligación Columna',
-				allowBlank: true,
-				emptyText: 'Elija una opción...',
-				store: new Ext.data.JsonStore({
-					url: '../../sis_sigep/control/Acreedor/listarObligacionColumna',
-					id: 'id_tipo_obligacion_columna',
-					root: 'datos',
-					sortInfo: {
-						field: 'nombre',
-						direction: 'ASC'
-					},
-					totalProperty: 'total',
-					fields: ['id_tipo_obligacion_columna','id_tipo_obligacion', 'nombre', 'codigo'],
-					remoteSort: true,
-					baseParams: {par_filtro: 'tto.nombre#tto.codigo',pago:'si'}
-				}),
-				valueField: 'id_tipo_obligacion_columna',
-				displayField: 'nombre',
-				gdisplayField: 'desc_obligacion_col',
-				hiddenName: 'id_tipo_obligacion_columna',
-				forceSelection: true,
-				typeAhead: false,
-				triggerAction: 'all',
-				lazyRender: true,
-				mode: 'remote',
-				pageSize: 15,
-				queryDelay: 1000,
-				anchor: '100%',
-				gwidth: 150,
-				minChars: 2,
-				tpl: new Ext.XTemplate([
-					'<tpl for=".">',
-					'<div class="x-combo-list-item">',
-					'<div class="awesomecombo-item {checked}">',
-					'<p><b>Codigo: {codigo}</b></p>',
-					'</div><p><b>Nombre:</b> <span style="color: green;">{nombre}</span></p>',
-					'</div></tpl>'
-				]),
-				renderer : function(value, p, record) {
-					return String.format('<b style="color: green;">{0}</b>', record.data['desc_obligacion_col']);
-				}
-			},
-			type: 'AwesomeCombo',
-			id_grupo: 1,
-			bottom_filter:true,
-			filters: {pfiltro: 'tto.nombre#tto.codigo',type: 'string'},
-			grid: true,
-			form: true
-		},
+		/*{
+            config: {
+                name: 'id_tipo_obligacion_columna',
+                fieldLabel: 'Obligación Columna',
+                allowBlank: true,
+                emptyText: 'Elija una opción...',
+                store: new Ext.data.JsonStore({
+                    url: '../../sis_sigep/control/Acreedor/listarObligacionColumna',
+                    id: 'id_tipo_obligacion_columna',
+                    root: 'datos',
+                    sortInfo: {
+                        field: 'codigo',
+                        direction: 'ASC'
+                    },
+                    totalProperty: 'total',
+                    fields: ['id_tipo_obligacion_columna','id_tipo_obligacion', 'nombre', 'codigo', 'codigo_pla', 'nombre_pla'],
+                    remoteSort: true,
+                    baseParams: {par_filtro: 'tto.nombre#tto.codigo',pago:'si'}
+                }),
+                valueField: 'id_tipo_obligacion_columna',
+                displayField: 'nombre',
+                gdisplayField: 'desc_obligacion_col',
+                hiddenName: 'id_tipo_obligacion_columna',
+                forceSelection: true,
+                typeAhead: false,
+                triggerAction: 'all',
+                lazyRender: true,
+                mode: 'remote',
+                pageSize: 15,
+                queryDelay: 1000,
+                anchor: '100%',
+                gwidth: 150,
+                minChars: 2,
+                tpl: new Ext.XTemplate([
+                    '<tpl for=".">',
+                    '<div class="x-combo-list-item">',
+                    '<div class="awesomecombo-item {checked}">',
+                    '<p><b>Codigo: {codigo}</b></p>',
+                    '</div><p><b>Nombre:</b> <span style="color: green;">{nombre}</span></p>',
+                    '<p><b>Cod. Planilla:</b> <span style="color: green;">{codigo_pla}</span></p>',
+                    '<p><b>Nom. Planilla:</b> <span style="color: green;">{nombre_pla}</span></p>',
+                    '</div></tpl>'
+                ]),
+                renderer : function(value, p, record) {
+                    return String.format('<b style="color: green;">{0}</b>', record.data['desc_obligacion_col']);
+                }
+            },
+            type: 'AwesomeCombo',
+            id_grupo: 1,
+            bottom_filter:true,
+            filters: {pfiltro: 'tto.nombre#tto.codigo',type: 'string'},
+            grid: true,
+            form: true
+        },*/
+
+        {
+            config: {
+                name: 'id_tipo_columna',
+                fieldLabel: 'Tipo Retencion',
+                allowBlank: true,
+                emptyText: 'Elija una opción...',
+                store: new Ext.data.JsonStore({
+                    url: '../../sis_sigep/control/Acreedor/listarTipoColumna',
+                    id: 'id_tipo_columna',
+                    root: 'datos',
+                    sortInfo: {
+                        field: 'codigo',
+                        direction: 'ASC'
+                    },
+                    totalProperty: 'total',
+                    fields: ['id_tipo_columna', 'nombre', 'codigo', 'codigo_pla', 'nombre_pla'],
+                    remoteSort: true,
+                    baseParams: {par_filtro: 'tto.nombre#tto.codigo',retencion:'si'}
+                }),
+                valueField: 'id_tipo_columna',
+                displayField: 'nombre',
+                gdisplayField: 'desc_obligacion_col',
+                hiddenName: 'id_tipo_columna',
+                forceSelection: true,
+                typeAhead: false,
+                triggerAction: 'all',
+                lazyRender: true,
+                mode: 'remote',
+                pageSize: 15,
+                queryDelay: 1000,
+                anchor: '100%',
+                gwidth: 150,
+                minChars: 2,
+                tpl: new Ext.XTemplate([
+                    '<tpl for=".">',
+                    '<div class="x-combo-list-item">',
+                    '<div class="awesomecombo-item {checked}">',
+                    '<p><b>Codigo: {codigo}</b></p>',
+                    '</div><p><b>Nombre:</b> <span style="color: green;">{nombre}</span></p>',
+                    '<p><b>Cod. Planilla:</b> <span style="color: green;">{codigo_pla}</span></p>',
+                    '<p><b>Nom. Planilla:</b> <span style="color: green;">{nombre_pla}</span></p>',
+                    '</div></tpl>'
+                ]),
+                renderer : function(value, p, record) {
+                    return String.format('<b style="color: green;">{0}</b>', record.data['desc_obligacion_col']);
+                }
+            },
+            type: 'AwesomeCombo',
+            id_grupo: 1,
+            bottom_filter:true,
+            filters: {pfiltro: 'tto.nombre#tto.codigo',type: 'string'},
+            grid: true,
+            form: true
+        },
 
 		{
 			config: {
@@ -329,7 +386,7 @@ Phx.vista.Acreedor=Ext.extend(Phx.gridInterfaz,{
 		{name:'desc_acreedor', type: 'string'},
 		{name:'tipo_acreedor', type: 'string'},
 		{name:'estado_reg', type: 'string'},
-		{name:'id_tipo_obligacion_columna', type: 'numeric'},
+		{name:'id_tipo_columna', type: 'numeric'},
 		{name:'id_usuario_ai', type: 'numeric'},
 		{name:'id_usuario_reg', type: 'numeric'},
 		{name:'usuario_ai', type: 'string'},

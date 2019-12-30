@@ -479,6 +479,21 @@ header("content-type: text/javascript; charset=UTF-8");
                 },
                 {
                     config:{
+                        name: 'cod_retencion',
+                        fieldLabel: 'Tipo Retencion',
+                        allowBlank: true,
+                        anchor: '80%',
+                        gwidth: 100,
+                        maxLength:4
+                    },
+                    type:'Field',
+                    filters:{pfiltro:'sad.cod_retencion',type:'string'},
+                    id_grupo:1,
+                    grid:true,
+                    form:false
+                },
+                {
+                    config:{
                         name: 'retencion',
                         fieldLabel: 'Retenciones',
                         allowBlank: true,
@@ -685,6 +700,8 @@ header("content-type: text/javascript; charset=UTF-8");
                 {name:'cuenta_contable', type: 'varchar'},
                 {name:'sisin', type: 'varchar'},
                 {name:'otfin', type: 'varchar'},
+                {name:'cod_multa', type: 'varchar'},
+                {name:'cod_retencion', type: 'varchar'},
 
             ],
             sortInfo:{

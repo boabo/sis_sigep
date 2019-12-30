@@ -52,7 +52,7 @@ BEGIN
 						acree.desc_acreedor,
 						acree.tipo_acreedor,
 						acree.estado_reg,
-						acree.id_tipo_obligacion_columna,
+						acree.id_tipo_columna,
 						acree.id_usuario_ai,
 						acree.id_usuario_reg,
 						acree.usuario_ai,
@@ -66,8 +66,8 @@ BEGIN
 						from sigep.tacreedor acree
 						inner join segu.tusuario usu1 on usu1.id_usuario = acree.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = acree.id_usuario_mod
-                        left join plani.ttipo_obligacion_columna toc on toc.id_tipo_obligacion_columna =  acree.id_tipo_obligacion_columna
-                        left join plani.ttipo_obligacion tto on tto.id_tipo_obligacion = toc.id_tipo_obligacion
+                        --left join plani.ttipo_obligacion_columna toc on toc.id_tipo_obligacion_columna =  acree.id_tipo_obligacion_columna
+                        left join plani.ttipo_columna tto on tto.id_tipo_columna = acree.id_tipo_columna
                         left join plani.tafp taf on taf.id_afp = acree.id_afp
 				        where  ';
 
@@ -95,8 +95,8 @@ BEGIN
 					    from sigep.tacreedor acree
 					    inner join segu.tusuario usu1 on usu1.id_usuario = acree.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = acree.id_usuario_mod
-                        left join plani.ttipo_obligacion_columna toc on toc.id_tipo_obligacion_columna =  acree.id_tipo_obligacion_columna
-                        inner join plani.ttipo_obligacion tto on tto.id_tipo_obligacion = toc.id_tipo_obligacion
+                        --left join plani.ttipo_obligacion_columna toc on toc.id_tipo_obligacion_columna =  acree.id_tipo_obligacion_columna
+                        inner join plani.ttipo_columna tto on tto.id_tipo_columna = acree.id_tipo_columna
                         left join plani.tafp taf on taf.id_afp = acree.id_afp
 					    where ';
 
@@ -118,15 +118,38 @@ BEGIN
 
     	begin
     		--Sentencia de la consulta
-			v_consulta:='select
+			/*v_consulta:='select
 						toc.id_tipo_obligacion_columna,
 						toc.codigo_columna,
                         tto.id_tipo_obligacion,
 						tto.codigo,
-						tto.nombre
+						tto.nombre,
+                        ttp.codigo as codigo_pla,
+                        ttp.nombre as nombre_pla
 						from plani.ttipo_obligacion_columna toc
                         inner join plani.ttipo_obligacion tto on tto.id_tipo_obligacion = toc.id_tipo_obligacion
-				        where  ';
+                        inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tto.id_tipo_planilla
+				        where  /*ttp.codigo = ''PLASUE'' and*/ ';*/
+
+            /*v_consulta:='select
+                        tto.id_tipo_obligacion,
+						tto.codigo,
+						tto.nombre,
+                        ttp.codigo as codigo_pla,
+                        ttp.nombre as nombre_pla
+						from plani.ttipo_obligacion tto
+                        inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tto.id_tipo_planilla
+				        where ';*/
+
+            v_consulta:='select
+                        tto.id_tipo_columna,
+						tto.codigo,
+						tto.nombre,
+                        ttp.codigo as codigo_pla,
+                        ttp.nombre as nombre_pla
+						from plani.ttipo_columna tto
+                        inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tto.id_tipo_planilla
+				        where ';
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
@@ -146,10 +169,16 @@ BEGIN
 
 		begin
 			--Sentencia de la consulta de conteo de registros
-			v_consulta:='select count(toc.id_tipo_obligacion_columna)
+			/*v_consulta:='select count(toc.id_tipo_obligacion_columna)
 					    from plani.ttipo_obligacion_columna toc
                         inner join plani.ttipo_obligacion tto on tto.id_tipo_obligacion = toc.id_tipo_obligacion
-					    where ';
+					    inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tto.id_tipo_planilla
+				        where  /*ttp.codigo = ''PLASUE'' and*/ ';*/
+
+            v_consulta:='select count(tto.id_tipo_columna)
+					    from plani.ttipo_columna tto
+                        inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tto.id_tipo_planilla
+				        where ';
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;

@@ -27,7 +27,7 @@ class MODAcreedor extends MODbase{
 		$this->captura('desc_acreedor','varchar');
 		$this->captura('tipo_acreedor','varchar');
 		$this->captura('estado_reg','varchar');
-		$this->captura('id_tipo_obligacion_columna','int4');
+		$this->captura('id_tipo_columna','int4');
 		$this->captura('id_usuario_ai','int4');
 		$this->captura('id_usuario_reg','int4');
 		$this->captura('usuario_ai','varchar');
@@ -61,7 +61,7 @@ class MODAcreedor extends MODbase{
 		$this->setParametro('desc_acreedor','desc_acreedor','varchar');
 		$this->setParametro('tipo_acreedor','tipo_acreedor','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
-		$this->setParametro('id_tipo_obligacion_columna','id_tipo_obligacion_columna','int4');
+		$this->setParametro('id_tipo_columna','id_tipo_columna','int4');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -85,7 +85,7 @@ class MODAcreedor extends MODbase{
 		$this->setParametro('desc_acreedor','desc_acreedor','varchar');
 		$this->setParametro('tipo_acreedor','tipo_acreedor','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
-		$this->setParametro('id_tipo_obligacion_columna','id_tipo_obligacion_columna','int4');
+		$this->setParametro('id_tipo_columna','id_tipo_columna','int4');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -112,18 +112,20 @@ class MODAcreedor extends MODbase{
 		return $this->respuesta;
 	}
 
-	function listarObligacionColumna(){
+	function listarTipoColumna(){
 		//Definicion de variables para ejecucion del procedimientp
 		$this->procedimiento='sigep.ft_acreedor_sel';
 		$this->transaccion='SIGEP_OB_COL_SEL';
 		$this->tipo_procedimiento='SEL';//tipo de transaccion
 
 		//Definicion de la lista del resultado del query
-		$this->captura('id_tipo_obligacion_columna','int4');
-		$this->captura('codigo_columna','varchar');
-		$this->captura('id_tipo_obligacion','int4');
+		//$this->captura('id_tipo_obligacion_columna','int4');
+		//$this->captura('codigo_columna','varchar');
+		$this->captura('id_tipo_columna','int4');
 		$this->captura('codigo','varchar');
 		$this->captura('nombre','varchar');
+		$this->captura('codigo_pla','varchar');
+		$this->captura('nombre_pla','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();

@@ -82,7 +82,13 @@ BEGIN
                         sad.cuenta_contable,
                         sad.sisin,
                         sad.otfin,
-                        sad.usuario_firm
+                        sad.usuario_firm,
+                        sad.cod_multa,
+                        sad.cod_retencion,
+                        sad.total_retencion,
+                        sad.mes_rdo,
+                        sad.tipo_rdo,
+                        sad.tipo_contrato
 						from sigep.tsigep_adq_det sad
 						inner join segu.tusuario usu1 on usu1.id_usuario = sad.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = sad.id_usuario_mod
@@ -147,7 +153,5 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
+PARALLEL UNSAFE
 COST 100;
-
-ALTER FUNCTION sigep.ft_sigep_adq_det_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;

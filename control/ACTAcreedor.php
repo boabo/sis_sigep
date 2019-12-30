@@ -40,14 +40,14 @@ class ACTAcreedor extends ACTbase{
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
 
-	function listarObligacionColumna(){
+	function listarTipoColumna(){
 
-		if ($this->objParam->getParametro('pago') != '') {
-			$this->objParam->addFiltro("toc.pago = ''". $this->objParam->getParametro('pago')."''");
+		if ($this->objParam->getParametro('retencion') != '') {
+			$this->objParam->addFiltro("tto.retencion = ''". $this->objParam->getParametro('retencion')."''");
 		}
 
 		$this->objFunc=$this->create('MODAcreedor');
-		$this->res=$this->objFunc->listarObligacionColumna($this->objParam);
+		$this->res=$this->objFunc->listarTipoColumna($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
 			

@@ -62,6 +62,11 @@ class ACTSigepAdqDet extends ACTbase{
         $this->res=$this->objFunc->cargarSigepCip($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
+    function cargarSigepPlani(){//var_dump('cargarSigepContDet');
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarSigepPlani($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
     function cargarSigepReguDet(){//var_dump('cargarSigepContDet');
         $this->objFunc=$this->create('MODSigepAdqDet');
         $this->res=$this->objFunc->cargarSigepReguDet($this->objParam);

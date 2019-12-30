@@ -131,7 +131,13 @@ BEGIN
                       sdet.cuenta_contable,
                       sdet.sisin,
                       sdet.otfin,
-                      sdet.usuario_firm
+                      sdet.usuario_firm,
+                      sdet.cod_multa,
+                      sdet.cod_retencion,
+                      sdet.total_retencion,
+                      sdet.mes_rdo,
+                      sdet.tipo_rdo,
+                      sdet.tipo_contrato
               FROM sigep.tsigep_adq_det sdet
               inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
               left join segu.tusuario usu2 on usu2.id_usuario = sdet.id_usuario_mod
@@ -258,6 +264,3 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 PARALLEL UNSAFE
 COST 100;
-
-ALTER FUNCTION sigep.ft_sigep_adq_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;

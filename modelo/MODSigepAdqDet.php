@@ -60,6 +60,11 @@ class MODSigepAdqDet extends MODbase{
         $this->captura('otfin','varchar');
         $this->captura('usuario_firm','varchar');
         $this->captura('cod_multa','varchar');
+        $this->captura('cod_retencion','varchar');
+        $this->captura('total_retencion','numeric');
+        $this->captura('mes_rdo','int4');
+        $this->captura('tipo_rdo','varchar');
+        $this->captura('tipo_contrato','varchar');
 
 
         //Ejecuta la instruccion
@@ -262,6 +267,28 @@ class MODSigepAdqDet extends MODbase{
 
         //Ejecuta la instruccion
         $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+
+    }
+    function cargarSigepPlani(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_PLANILLA_CHAR';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        //$this->setParametro('id_funcionario_wf','id_funcionario_wf','int4');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();//echo $this->consulta;exit;
         $this->ejecutarConsulta();
 
         //Devuelve la respuesta
