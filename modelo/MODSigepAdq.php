@@ -539,7 +539,7 @@ class MODSigepAdq extends MODbase{
                 $str->libretas [] = array("bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
                 $json = json_encode($str);
                 $service_code = 'SIN_IMPUTACION_CP';
-        }
+            }
 
 
             //////////////////COMPROMETIDO-DEVENGADO////////////////////////////
@@ -1000,7 +1000,7 @@ class MODSigepAdq extends MODbase{
                 if( $service_code == 'REGULARIZAC' || $service_code == 'REGULARIZAC_REV' ){
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'CIP " . $nro_preventivo . "'
-                            WHERE id_entrega = " . $id_entrega;    
+                            WHERE id_entrega = " . $id_entrega;
                 }else if($service_code == 'CON_IMPUTACION') {
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'CIP " . $nro_documento . "'
