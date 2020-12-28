@@ -491,3 +491,19 @@ WITH (oids = false);
 ALTER TABLE sigep.tmulta
   OWNER TO postgres;
 /***********************************F-SCP-MAY-SIGEP-0-17/10/2019****************************************/
+
+
+/***********************************I-SCP-FEA-SIGEP-0-13/08/2020****************************************/
+
+ALTER TABLE sigep.tsigep_adq
+ADD COLUMN localidad VARCHAR(32);
+
+ALTER TABLE sigep.tsigep_adq_det
+  ADD COLUMN cod_multa VARCHAR(12),
+  ADD COLUMN cod_retencion VARCHAR(12),
+  ADD COLUMN total_retencion NUMERIC(18,2),
+  ADD COLUMN mes_rdo INTEGER,
+  ADD COLUMN tipo_rdo VARCHAR(5),
+  ADD COLUMN tipo_contrato VARCHAR(5);
+
+/***********************************F-SCP-FEA-SIGEP-0-13/08/2020****************************************/

@@ -31,6 +31,10 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 			this.Cmp.id_gestion.setRawValue(this.desc_gestion);
 		},this);
 
+        /*this.Cmp.id_gestion.on('select', function (cmb, record, index) { console.log('gestion',  record.id, index);
+            this.Cmp.id_cuenta.store.baseParams = {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', tipo_cuenta:'gasto', id_gestion: record.id};
+        }, this);*/
+
 	},
 
 	onButtonNew: function () {
@@ -46,7 +50,7 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 					this.Cmp.id_gestion.setValue(reg.ROOT.datos.id_gestion);
 					this.Cmp.id_gestion.setRawValue(reg.ROOT.datos.anho);
 					this.desc_gestion = this.Cmp.id_gestion.getRawValue();
-					this.Cmp.id_cuenta.store.baseParams = {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', tipo_cuenta:'gasto', id_gestion: reg.ROOT.datos.id_gestion};
+					this.Cmp.id_cuenta.store.baseParams = {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', /*tipo_cuenta:'gasto',*/ id_gestion: reg.ROOT.datos.id_gestion};
 				}else{
 					alert('Ocurrio un error al obtener la Gestión')
 				}
@@ -83,8 +87,8 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 				origen : 'GESTION',
 				fieldLabel : 'Gestión',
 				allowBlank : false,
-				editable: false,
-				disabled: true,
+				editable: true,
+				disabled: false,
 				width: 125,
 				listWidth:'232',
 				pageSize: 5,
@@ -185,7 +189,7 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 					totalProperty: 'total',
 					fields: ['id_cuenta', 'nombre_cuenta', 'nro_cuenta', 'desc_moneda'],
 					remoteSort: true,
-					baseParams: {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta', tipo_cuenta:'gasto'}
+					baseParams: {par_filtro: 'cta.nombre_cuenta#cta.nro_cuenta'/*, tipo_cuenta:'gasto'*/}
 				}),
 				valueField: 'id_cuenta',
 				displayField: 'nombre_cuenta',
@@ -201,6 +205,7 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 				anchor: '100%',
 				gwidth: 250,
 				minChars: 2,
+                resizable: true,
 				tpl: new Ext.XTemplate([
 					'<tpl for=".">',
 					'<div class="x-combo-list-item">',

@@ -30,17 +30,17 @@ Phx.vista.ObjetoGasto=Ext.extend(Phx.gridInterfaz,{
 	iniciarEventos: function () {
 
 
-		this.Cmp.id_gestion.on('select', function (cmb, rec, index ) {
+		this.Cmp.id_gestion.on('select', function (cmb, rec, index ) { console.log('rec', rec);
 			this.desc_gestion = this.Cmp.id_gestion.getRawValue();
-			if(this.nuevo) {
+			//if(this.nuevo) {
 				this.Cmp.id_partida.reset();
 				this.Cmp.id_partida.modificado = true;
 				this.Cmp.id_partida.store.baseParams = {
 					par_filtro: 'par.codigo#par.nombre_partida',
-					id_gestion: this.Cmp.id_gestion.getValue(),
+					id_gestion: rec.id,
 					sw_transaccional: 'movimiento'
 				};
-			}
+			//}
 		},this);
 
 		this.Cmp.id_gestion.on('blur', function (rec) {
@@ -68,7 +68,7 @@ Phx.vista.ObjetoGasto=Ext.extend(Phx.gridInterfaz,{
 				origen : 'GESTION',
 				fieldLabel : 'Gestión',
 				allowBlank : false,
-				editable: false,
+				//editable: false,
 
 				width: 125,
 				listWidth:'232',
@@ -387,8 +387,12 @@ Phx.vista.ObjetoGasto=Ext.extend(Phx.gridInterfaz,{
 
 	onButtonEdit: function () {
 		Phx.vista.ObjetoGasto.superclass.onButtonEdit.call(this);
-		this.Cmp.id_gestion.setDisabled(true);
+		//this.Cmp.id_gestion.setDisabled(true);
 		this.nuevo = false;
+        var rec = this.getSelectedData();
+        //this.Cmp.id_partida.store.setBaseParam(id_gestion, rec.id_gestion);
+
+        this.Cmp.id_partida.store.baseParams ={id_gestion: rec.id_gestion};
 	},
 
 	Grupos: [

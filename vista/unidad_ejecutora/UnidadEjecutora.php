@@ -30,7 +30,7 @@ Phx.vista.UnidadEjecutora=Ext.extend(Phx.gridInterfaz,{
 	iniciarEventos: function () {
 
 		this.Cmp.id_gestion.on('blur', function (rec) {
-
+            console.log('rec', rec);
 			this.Cmp.id_gestion.setRawValue(this.desc_gestion);
 		},this);
 
@@ -61,6 +61,13 @@ Phx.vista.UnidadEjecutora=Ext.extend(Phx.gridInterfaz,{
 
 
 	},
+
+    onButtonEdit: function () {
+        var rec = this.getSelectedData();
+        //this.Cmp.id_ue.store.baseParams = {id_gestion:rec.id_gestion};
+        this.Cmp.id_unidad_ejecutora.store.setBaseParam('id_gestion', rec.id_gestion);
+        Phx.vista.UnidadEjecutora.superclass.onButtonEdit.call(this);
+    },
 			
 	Atributos:[
 		{

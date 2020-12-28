@@ -37,6 +37,7 @@ DECLARE
     v_coldev				text[];
     v_matriz				varchar[];
 
+	v_record				record;
 BEGIN
 
     v_nombre_funcion = 'sigep.ft_sigep_adq_ime';
@@ -186,11 +187,38 @@ BEGIN
            inner join sigep.tsigep_adq sad on sad.id_sigep_adq = ad.id_sigep_adq
            where ad.id_sigep_adq = v_parametros.id_sigep_adq;
 
-           update conta.tint_comprobante
-           	set c31 = case when v_preve.momento = 'SIN_IMPUTACION' THEN
-            					upper(concat('SIP ',v_parametros.nro_devengado)) ELSE
-            					upper(concat('CIP ',v_parametros.nro_preventivo)) end
-            where id_int_comprobante = v_preve.nro_doc_rdo;
+           	for v_record in select ten.id_entrega, ten.c31 c31_ent, ten.fecha_c31 fecha_ent, tic.id_int_comprobante
+                           from conta.tentrega ten
+                           inner join conta.tentrega_det ted on ted.id_entrega = ten.id_entrega
+                           inner join conta.tint_comprobante tic on tic.id_int_comprobante = ted.id_int_comprobante
+                           where ten.id_entrega = v_preve.nro_doc_rdo::integer loop
+
+                if v_parametros.nro_preventivo != '' or v_parametros.nro_devengado != '' then
+                  update conta.tint_comprobante  set
+                  	c31 = case
+            			   when v_preve.momento = 'SIN_IMPUTACION' THEN upper(concat('SIP ',v_parametros.nro_devengado))
+                           when v_preve.momento = 'REGULARIZAS' THEN upper(concat('REG. SIP ',v_parametros.nro_devengado))
+                           when v_preve.momento = 'REGULARIZAC' THEN upper(concat('REG. CIP ',v_parametros.nro_preventivo))
+                           when v_preve.momento = 'REGULARIZAC_REV' THEN upper(concat('REV. CIP ',v_parametros.nro_preventivo))
+                           when v_preve.momento = 'REGULARIZAS_REV' THEN upper(concat('REV. SIP ',v_parametros.nro_devengado))
+            		  	   ELSE upper(concat('CIP ',v_parametros.nro_preventivo))
+            		  	end
+                  	--,fecha_c31 = v_record.fecha_ent
+                  where id_int_comprobante = v_record.id_int_comprobante;
+        		end if;
+
+    		end loop;
+
+           /*update conta.tint_comprobante
+           	set c31 = case
+            			   when v_preve.momento = 'SIN_IMPUTACION' THEN upper(concat('SIP ',v_parametros.nro_devengado))
+                           when v_preve.momento = 'REGULARIZAS' THEN upper(concat('REG. SIP ',v_parametros.nro_devengado))
+                           when v_preve.momento = 'REGULARIZAC' THEN upper(concat('REG. CIP ',v_parametros.nro_preventivo))
+                           when v_preve.momento = 'REGULARIZAC_REV' THEN upper(concat('REG. CIP ',v_parametros.nro_preventivo))
+                           when v_preve.momento = 'REGULARIZAS_REV' THEN upper(concat('REG. CIP ',v_parametros.nro_devengado))
+            		  	   ELSE upper(concat('CIP ',v_parametros.nro_preventivo))
+            		  end
+            where id_int_comprobante = v_preve.nro_doc_rdo;*/
 
 
 			--Definicion de la respuesta
@@ -219,8 +247,9 @@ BEGIN
 			--Sentencia de la consulta
 			--raise exception 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_parametros.id_beneficiario;
 
-           update param.tproveedor
-           set id_beneficiario = v_parametros.id_beneficiario::int4
+           update param.tproveedor r set
+           id_beneficiario = v_parametros.id_beneficiario::int4,
+           razon_social_sigep =  v_parametros.razon_social_sigep
            where id_proveedor=v_parametros.id_proveedor;
 
 			--Definicion de la respuesta
@@ -426,6 +455,3 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
-
-ALTER FUNCTION sigep.ft_sigep_adq_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;

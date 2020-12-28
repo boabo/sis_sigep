@@ -79,13 +79,42 @@ BEGIN
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
-			v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+			v_consulta:=v_consulta||' order by id_sigep_adq ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
 
+            raise notice 'v_consulta: %', v_consulta;
 			--Devuelve la respuesta
 			return v_consulta;
 
 		end;
-     /*********************************
+
+	/*********************************
+ 	#TRANSACCION:  'SIGEP_SADQ_CONT'
+ 	#DESCRIPCION:	Conteo de registros
+ 	#AUTOR:		rzabala
+ 	#FECHA:		15-03-2019 21:10:26
+	***********************************/
+
+	elsif(p_transaccion='SIGEP_SADQ_CONT')then
+
+		begin
+
+			--Sentencia de la consulta de conteo de registros
+			v_consulta:='select count(id_sigep_adq)
+					    from sigep.tsigep_adq sadq
+					    inner join segu.tusuario usu1 on usu1.id_usuario = sadq.id_usuario_reg
+                        --inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
+						left join segu.tusuario usu2 on usu2.id_usuario = sadq.id_usuario_mod
+					    where ';
+
+			--Definicion de la respuesta
+			v_consulta:=v_consulta||v_parametros.filtro;
+			raise notice 'v_consulta: %', v_consulta;
+			--Devuelve la respuesta
+			return v_consulta;
+
+		end;
+
+    /*********************************
  	#TRANSACCION:  'SIGEP_CONS'
  	#DESCRIPCION:	Consulta para datos de envio al Sigep
  	#AUTOR:		rzabala
@@ -124,6 +153,8 @@ BEGIN
                       sig.clase_gasto,
                       sig.momento,
                       sig.nro_preventivo,
+                      sig.nro_comprometido,
+        			  sig.nro_devengado,
                       sdet.monto_benef,
                       sdet.liquido_pagable,
                       sdet.multa as multa_mo,
@@ -131,7 +162,15 @@ BEGIN
                       sdet.cuenta_contable,
                       sdet.sisin,
                       sdet.otfin,
-                      sdet.usuario_firm
+                      sdet.usuario_firm,
+                      sdet.cod_multa,
+                      sdet.cod_retencion,
+                      sdet.total_retencion,
+                      sdet.mes_rdo,
+                      sdet.tipo_rdo,
+                      sdet.tipo_contrato,
+                      sdet.fecha_tipo_cambio,
+                      sdet.nro_preventivo as preventivo_sigep
               FROM sigep.tsigep_adq_det sdet
               inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
               left join segu.tusuario usu2 on usu2.id_usuario = sdet.id_usuario_mod
@@ -210,32 +249,6 @@ BEGIN
 
 		end;
 
-	/*********************************
- 	#TRANSACCION:  'SIGEP_SADQ_CONT'
- 	#DESCRIPCION:	Conteo de registros
- 	#AUTOR:		rzabala
- 	#FECHA:		15-03-2019 21:10:26
-	***********************************/
-
-	elsif(p_transaccion='SIGEP_SADQ_CONT')then
-
-		begin
-			--Sentencia de la consulta de conteo de registros
-			v_consulta:='select count(id_sigep_adq)
-					    from sigep.tsigep_adq sadq
-					    inner join segu.tusuario usu1 on usu1.id_usuario = sadq.id_usuario_reg
-                        inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
-						left join segu.tusuario usu2 on usu2.id_usuario = sadq.id_usuario_mod
-					    where ';
-
-			--Definicion de la respuesta
-			v_consulta:=v_consulta||v_parametros.filtro;
-
-			--Devuelve la respuesta
-			return v_consulta;
-
-		end;
-
 	else
 
 		raise exception 'Transaccion inexistente';
@@ -256,8 +269,4 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
-PARALLEL UNSAFE
 COST 100;
-
-ALTER FUNCTION sigep.ft_sigep_adq_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;

@@ -57,7 +57,7 @@ class ACTSigepAdqDet extends ACTbase{
         $this->res=$this->objFunc->cargarSigepContDet($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }*/
-    function cargarSigepCip(){//var_dump('cargarSigepContDet');
+    function cargarSigepCip(){
         $this->objFunc=$this->create('MODSigepAdqDet');
         $this->res=$this->objFunc->cargarSigepCip($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
@@ -73,6 +73,52 @@ class ACTSigepAdqDet extends ACTbase{
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
 
+    function cargarSigepReguCip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarSigepReguCip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    function cargarSigepReguSip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarSigepReguSip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    //{develop:franklin.espinoza date:27/09/2020}
+    function cargarEntregaSigepReguCip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarEntregaSigepReguCip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    //{develop:franklin.espinoza date:27/09/2020}
+    function cargarEntregaSigepReguSip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarEntregaSigepReguSip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    //{develop:franklin.espinoza date:15/10/2020}
+    function cargarEntregaSigepCip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarEntregaSigepCip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    //{develop:franklin.espinoza date:09/11/2020}
+    function cargarEntregaSigepReguReverCip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarEntregaSigepReguReverCip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    //{develop:franklin.espinoza date:23/11/2020}
+    function cargarEntregaSigepReguReverSip(){
+        $this->objFunc=$this->create('MODSigepAdqDet');
+        $this->res=$this->objFunc->cargarEntregaSigepReguReverSip($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
 }
 
 ?>

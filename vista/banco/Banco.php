@@ -119,6 +119,7 @@ Phx.vista.Banco=Ext.extend(Phx.gridInterfaz,{
 				anchor: '100%',
 				gwidth: 200,
 				minChars: 2,
+                resizable: true,
 				tpl: new Ext.XTemplate([
 					'<tpl for=".">',
 					'<div class="x-combo-list-item">',

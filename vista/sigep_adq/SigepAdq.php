@@ -26,8 +26,7 @@ header("content-type: text/javascript; charset=UTF-8");
             this.maestro=config.maestro;
             //llama al constructor de la clase padre
             Phx.vista.SigepAdq.superclass.constructor.call(this,config);
-            this.init();
-            var that = this;
+
 
             this.addButton('btnreenviar', {
                 //grupo: [0],
@@ -37,6 +36,11 @@ header("content-type: text/javascript; charset=UTF-8");
                 handler:this.onButtonReenviar,
                 tooltip: '<b>Reenviar C31</b><br/>Reenvia solicitud al Sigep'
             });
+
+            this.init();
+            //var that = this;
+
+
 
             /*this.addButton('btnprocesar', {
                 //grupo: [0],
@@ -56,7 +60,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 tooltip: '<b>Beneficiario</b><br/>Adiciona al beneficiario desde el ERP con el Documento de Identidad o Nit'
             });*/
 
-            if(that.sigep_adq == 'vbsigepadq'){
+            /*if(that.sigep_adq == 'vbsigepadq'){
                 this.store.baseParams.num_tramite = that.maestro.num_tramite;
                 this.store.baseParams.sigep_adq = that.sigep_adq;
                 console.log('datos en sigep: ',that.sigep_adq, that.maestro.num_tramite,  this.store.baseParams.num_tramite);
@@ -70,7 +74,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 this.store.baseParams.num_tramite = that.nro_tramite;
                 this.store.baseParams.sigep_adq = that.sigep_adq;
                 console.log('datos en sigep: ',that.sigep_adq, that.nro_tramite,  this.store.baseParams.num_tramite);
-            }
+            }*/
 
             this.load({params:{start:0, limit:this.tam_pag}})
         },
@@ -507,6 +511,6 @@ header("content-type: text/javascript; charset=UTF-8");
         cls:'ConsumoPreventivo'
     }*/
 
-    })
+    });
 </script>
 

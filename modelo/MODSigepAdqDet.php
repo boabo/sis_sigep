@@ -260,7 +260,7 @@ class MODSigepAdqDet extends MODbase{
 
 
         //Ejecuta la instruccion
-        $this->armarConsulta();
+        $this->armarConsulta();//echo $this->consulta;exit;
         $this->ejecutarConsulta();
 
         //Devuelve la respuesta
@@ -268,6 +268,51 @@ class MODSigepAdqDet extends MODbase{
         return $this->respuesta;
 
     }
+
+    function cargarSigepReguCip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_REGU_CIP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
+    function cargarSigepReguSip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_REGU_SIP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        //$this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
     function cargarSigepReguDet(){
         //Definicion de variables para ejecucion del procedimiento
         $this->procedimiento='sigep.ft_sigep_adq_det_ime';
@@ -311,6 +356,121 @@ class MODSigepAdqDet extends MODbase{
         return $this->respuesta;
 
     }
+
+    //{develop:franklin.espinoza date:27/09/2020}
+    function cargarEntregaSigepReguCip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_REGU_ENT_CIP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
+    //{develop:franklin.espinoza date:27/09/2020}
+    function cargarEntregaSigepReguReverCip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_REG_ENTREV_CIP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta(); //echo $this->consulta; exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
+    //{develop:franklin.espinoza date:27/09/2020}
+    function cargarEntregaSigepReguSip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_REGU_ENT_SIP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
+    //{develop:franklin.espinoza date:15/10/2020}
+    function cargarEntregaSigepCip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_ENT_CIP_CHAR';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
+    //{develop:franklin.espinoza date:23/11/2020}
+    function cargarEntregaSigepReguReverSip(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
+        $this->transaccion='SIGEP_REG_ENTREV_SIP';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('sigep_adq','sigep_adq','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+        //Ejecuta la instruccion
+        $this->armarConsulta(); //echo $this->consulta; exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+
 
 }
 ?>
