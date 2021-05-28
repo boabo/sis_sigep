@@ -110,6 +110,25 @@ class MODUnidadEjecutora extends MODbase{
 		//Devuelve la respuesta
 		return $this->respuesta;
 	}
+
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Unidad Ejecutora}**/
+    function clonarUnidadEjecutora(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_unidad_ejecutora_ime';
+        $this->transaccion='PRE_CLO_UNI_EJE_IME';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_unidad_ejecutora','id_unidad_ejecutora','int4');
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Unidad Ejecutora}**/
 			
 }
 ?>

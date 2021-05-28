@@ -39,6 +39,14 @@ class ACTFuenteFinanciamiento extends ACTbase{
 		$this->res=$this->objFunc->eliminarFuenteFinanciamiento($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Fuente Financiamiento}**/
+    function clonarFuenteFinanciamiento(){
+        $this->objFunc=$this->create('MODFuenteFinanciamiento');
+        $this->res=$this->objFunc->clonarFuenteFinanciamiento($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Fuente Financiamiento}**/
 			
 }
 

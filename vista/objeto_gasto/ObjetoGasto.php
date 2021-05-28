@@ -81,6 +81,7 @@ Phx.vista.ObjetoGasto=Ext.extend(Phx.gridInterfaz,{
 				}
 			},
 			type : 'ComboRec',
+            filters:{pfiltro:'obj_gas.id_gestion',type:'numeric'},
 			id_grupo : 1,
 			form : true,
 			grid:true

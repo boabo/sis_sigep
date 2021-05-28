@@ -100,6 +100,7 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 				}
 			},
 			type : 'ComboRec',
+            filters:{pfiltro:'cue_cont.id_gestion',type:'numeric'},
 			id_grupo : 1,
 			form : true,
 			grid:true

@@ -758,7 +758,7 @@ class MODSigepAdq extends MODbase{
             //var_dump('beneficiario elaboracion:',$servicio);exit;
 
             //$usuario = 'beneficiario';
-            $usuario = 'franklin.espinoza';
+            $usuario = $servicio['datos']['usuario_sigep'];//'franklin.espinoza';
             $id_proveedor = $servicio['datos']['id_proveedor'];
             $nit = $servicio['datos']['nit'];
             $ci = $servicio['datos']['ci'];
@@ -820,10 +820,9 @@ class MODSigepAdq extends MODbase{
 
 
         $result= json_decode($variable, true);
-        //var_dump('esto es resultado antes de decode:', $variable);exit;
-        //$id_adq = $servicio['id_sigep_adq'];
+
         $id_service_request=$result['ROOT']['datos']['id_service_request'];
-        //var_dump('esto es resultado antes de decode:', $id_service_request);exit;
+
         $str = new stdClass();
         if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_M'|| $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code ==  'CON_IMPUTACION_EXT' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV'){
             $this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
@@ -1054,6 +1053,47 @@ class MODSigepAdq extends MODbase{
         $this->respuesta->setDatos($str);
         return $this->respuesta;
     }
+
+    function StatusPassC31 (){
+
+
+        $id_service_request = $this->objParam->getParametro('id_service_request');
+        $id_entrega = $this->objParam->getParametro('id_entrega');
+        $tipo = $this->objParam->getParametro('tipo');
+
+        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+
+        $variable = $pxpRestClient->doPost('sigep/ServiceRequest/getServiceStatus',
+            array(	"id_service_request"=>''.$id_service_request.''
+            ));
+        $result= json_decode($variable, true);
+
+        if($result['ROOT']['datos']['status'] == 'success' || $result['ROOT']['datos']['status'] == 'pending'){
+            $resp = $result['ROOT']['datos'];
+
+            $str = new stdClass();
+            $str->resultado_pass = $resp;
+            /*$nro_preventivo = $result['ROOT']['datos']['output']['nroPreventivo'];
+            $nro_comprometido = $result['ROOT']['datos']['output']['nroCompromiso'];
+            $nro_devengado = $result['ROOT']['datos']['output']['nroDevengado'];*/
+        }else{
+
+            $error = $result['ROOT']['datos']['last_message'];
+            $error = str_replace("MENSAJE:","", $error);
+            $error = str_replace("CAUSA:","", $error);
+            $error = str_replace("ACCION: ","", $error);
+            $str = new stdClass();
+            $str->error = "" . $error . "";
+            $str->id_service_request = "" . $id_service_request . "";
+
+        }
+
+        $this->respuesta = new Mensaje();
+        $this->respuesta->setMensaje('EXITO', $this->nombre_archivo, 'Procesamiento exitoso ', 'Procesamiento exitoso ', 'modelo', $this->nombre_archivo, 'procesarServices', 'IME', '');
+        $this->respuesta->setDatos($str);
+        return $this->respuesta;
+    }
+
     function registrarPreventivo(){
 
         //var_dump('finalizado nro proveedor:',$id_proveedor);

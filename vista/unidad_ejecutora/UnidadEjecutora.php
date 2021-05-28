@@ -21,11 +21,61 @@ Phx.vista.UnidadEjecutora=Ext.extend(Phx.gridInterfaz,{
 		this.maestro=config.maestro;
     	//llama al constructor de la clase padre
 		Phx.vista.UnidadEjecutora.superclass.constructor.call(this,config);
+        this.addButton('clonarUnidadEjecutora',
+            {
+                //grupo: [0],
+                text: 'Clonar Unidad Ejecutora',
+                iconCls: 'bexport',
+                disabled: false,
+                handler: this.clonarUnidadEjecutora,
+                tooltip: '<b>Clonar</b><br/>Clonar Unidad Ejecutora.'
+            }
+        );
 		this.init();
 		this.desc_gestion = '';
 		this.iniciarEventos();
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
+
+    clonarUnidadEjecutora: function () {
+
+        Ext.Msg.show({
+            title: 'Unidad Ejecutora',
+            msg: '<b style="color: red;">Esta seguro de Clonar los registros de Unidad Ejecutora.</b>',
+            fn: function (btn){
+                if(btn == 'ok'){
+                    var record = this.getSelectedData();
+                    Phx.CP.loadingShow();
+
+                    Ext.Ajax.request({
+                        url: '../../sis_sigep/control/UnidadEjecutora/clonarUnidadEjecutora',
+                        params: {
+                            id_unidad_ejecutora : 0
+                        },
+                        success: function (resp) {
+                            Phx.CP.loadingHide();
+                            var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+                            if (reg.ROOT.error) {
+                                Ext.Msg.alert('Error', 'Al Clonar Unidad Ejecutora: ' + reg.ROOT.error)
+                            } else {
+                                this.reload();
+                            }
+                        },
+                        failure: this.conexionFailure,
+                        timeout: this.timeout,
+                        scope: this
+                    });
+
+                }
+            },
+            buttons: Ext.Msg.OKCANCEL,
+            width: 450,
+            maxWidth:500,
+            icon: Ext.Msg.WARNING,
+            scope:this
+        });
+
+    },
 
 	iniciarEventos: function () {
 

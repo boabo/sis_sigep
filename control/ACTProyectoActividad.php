@@ -39,6 +39,14 @@ class ACTProyectoActividad extends ACTbase{
 		$this->res=$this->objFunc->eliminarProyectoActividad($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
+    function clonarProyectoActividad(){
+        $this->objFunc=$this->create('MODProyectoActividad');
+        $this->res=$this->objFunc->clonarProyectoActividad($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
 			
 }
 

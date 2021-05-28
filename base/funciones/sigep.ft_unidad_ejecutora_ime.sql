@@ -31,6 +31,11 @@ DECLARE
 	v_mensaje_error         text;
 	v_id_unidad_ejecutora	integer;
 
+
+    v_id_gestion			integer;
+    v_id_unidad_dos			integer;
+    v_registros				record;
+
 BEGIN
 
     v_nombre_funcion = 'sigep.ft_unidad_ejecutora_ime';
@@ -139,6 +144,93 @@ BEGIN
             --Definicion de la respuesta
             v_resp = pxp.f_agrega_clave(v_resp,'mensaje','UnidadEjecutora eliminado(a)');
             v_resp = pxp.f_agrega_clave(v_resp,'id_unidad_ejecutora_boa',v_parametros.id_unidad_ejecutora_boa::varchar);
+
+            --Devuelve la respuesta
+            return v_resp;
+
+		end;
+
+    /*********************************
+ 	#TRANSACCION:  'PRE_CLO_UNI_EJE_IME'
+ 	#DESCRIPCION:	Clonacion de Registros Unidad Ejecutora
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		18-01-2021 10:00:23
+	***********************************/
+
+	elsif(p_transaccion='PRE_CLO_UNI_EJE_IME')then
+
+		begin
+
+          select tg.id_gestion
+          into v_id_gestion
+          from param.tgestion tg
+          where tg.gestion = date_part('year',current_date);
+
+			for v_registros in select tue.id_ue,
+                                      tue.id_da,
+                                      tue.ue,
+                                      tue.desc_ue,
+                                      tue.id_unidad_ejecutora
+        						from sigep.tunidad_ejecutora tue
+                                where tue.id_gestion = v_id_gestion - 1 loop
+            	--buscamos si existe la relacion de id_categoria_programatica para la siguiente gestion
+               if exists (select 1
+                          from pre.tunidad_ejecutora_ids tuei
+                          where tuei.id_unidad_ejecutora_uno = v_registros.id_unidad_ejecutora) then
+
+
+                          --encontramos el id_categoria_programatica de la gestion siguiente
+                          select tuei.id_unidad_ejecutora_dos
+                          into v_id_unidad_dos
+                          from  pre.tunidad_ejecutora_ids tuei
+                          where tuei.id_unidad_ejecutora_uno = v_registros.id_unidad_ejecutora;
+                          --si no existe registrado la relacion de partidas con clases de gasto realizamos la insercion en la tabla
+                          if not exists ( select 1
+                                          from  sigep.tunidad_ejecutora tue
+                                          where tue.id_ue = v_registros.id_ue and tue.id_da = v_registros.id_da
+                                      	  and tue.ue = v_registros.ue and tue.desc_ue = v_registros.desc_ue
+                                          and tue.id_unidad_ejecutora = v_id_unidad_dos ) then
+
+                            insert into sigep.tunidad_ejecutora(
+                            	id_usuario_reg,
+                                id_usuario_mod,
+                                fecha_reg,
+                                fecha_mod,
+                                estado_reg,
+                                id_usuario_ai,
+                                usuario_ai,
+
+                                id_ue,
+                                id_da,
+                                ue,
+                                desc_ue,
+                                id_unidad_ejecutora,
+                                id_gestion
+                            )values(
+                            	p_id_usuario,
+                                null,
+                                now(),
+                                null,
+                                'activo',
+                                null,
+                                null,
+
+                                v_registros.id_ue,
+                                v_registros.id_da,
+                                v_registros.ue,
+                                v_registros.desc_ue,
+                                v_id_unidad_dos,
+                                v_id_gestion
+                            );
+                          end if;
+               end if;
+            end loop;
+
+
+
+            --Definicion de la respuesta
+            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Fuente Financiamiento Clonados');
+            v_resp = pxp.f_agrega_clave(v_resp,'gestion destino',v_id_gestion::varchar);
 
             --Devuelve la respuesta
             return v_resp;

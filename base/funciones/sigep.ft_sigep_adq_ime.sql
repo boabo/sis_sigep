@@ -38,6 +38,8 @@ DECLARE
     v_matriz				varchar[];
 
 	v_record				record;
+
+    v_usuario_sigep			varchar;
 BEGIN
 
     v_nombre_funcion = 'sigep.ft_sigep_adq_ime';
@@ -349,6 +351,11 @@ BEGIN
                 left join param.tlugar lug on lug.id_lugar = provee.id_lugar
                 where  provee.id_proveedor = v_parametros.id_proveedor;
 
+           select tu.cuenta
+           into v_usuario_sigep
+           from segu.tusuario tu
+           where tu.id_usuario = p_id_usuario;
+
 			--Definicion de la respuesta
             --v_consulta:=v_consulta||v_parametros.filtro;
             --raise exception 'checkpoint CONSULTA BENEFICIARIO SIGEP: %',v_consulta;
@@ -366,6 +373,8 @@ BEGIN
             v_resp = pxp.f_agrega_clave(v_resp,'ap_materno',v_consulta.ap_materno::varchar);
             v_resp = pxp.f_agrega_clave(v_resp,'fecha_nacimiento',v_consulta.fecha_nacimiento::varchar);
             v_resp = pxp.f_agrega_clave(v_resp,'id_beneficiario',v_consulta.id_beneficiario::varchar);
+
+            v_resp = pxp.f_agrega_clave(v_resp,'usuario_sigep',v_usuario_sigep::varchar);
 
             --Devuelve la respuesta
             raise notice 'checkpoint REGISTRO BENEFICIARIO SIGEP: %', v_resp;

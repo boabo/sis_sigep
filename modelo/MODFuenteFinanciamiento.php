@@ -110,6 +110,25 @@ class MODFuenteFinanciamiento extends MODbase{
 		//Devuelve la respuesta
 		return $this->respuesta;
 	}
+
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Fuente Financiamiento}**/
+    function clonarFuenteFinanciamiento(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_fuente_financiamiento_ime';
+        $this->transaccion='PRE_CLO_FUE_FIN_IME';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_fuente_financiamiento','id_fuente_financiamiento','int4');
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Fuente Financiamiento}**/
 			
 }
 ?>

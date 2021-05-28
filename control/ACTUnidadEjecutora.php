@@ -39,6 +39,14 @@ class ACTUnidadEjecutora extends ACTbase{
 		$this->res=$this->objFunc->eliminarUnidadEjecutora($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Unidad Ejecutora}**/
+    function clonarUnidadEjecutora(){
+        $this->objFunc=$this->create('MODUnidadEjecutora');
+        $this->res=$this->objFunc->clonarUnidadEjecutora($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Unidad Ejecutora}**/
 			
 }
 

@@ -30,6 +30,10 @@ DECLARE
 	v_nombre_funcion        text;
 	v_mensaje_error         text;
 	v_id_proyecto_actividad	integer;
+    v_id_gestion			integer;
+    v_id_categoria_dos		integer;
+
+    v_registros				record;
 
 BEGIN
 
@@ -154,6 +158,106 @@ BEGIN
 
 		end;
 
+    /*********************************
+ 	#TRANSACCION:  'PRE_CLO_PRO_ACT_IME'
+ 	#DESCRIPCION:	Clonacion de Registros Proyecto Actividad
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		18-01-2021 10:00:23
+	***********************************/
+
+	elsif(p_transaccion='PRE_CLO_PRO_ACT_IME')then
+
+		begin
+
+          select tg.id_gestion
+          into v_id_gestion
+          from param.tgestion tg
+          where tg.gestion = date_part('year',current_date);
+
+			for v_registros in select tpa.id_catprg,
+             						  tpa.id_entidad,
+                                      tpa.programa,
+                                      tpa.proyecto,
+                                      tpa.actividad,
+                                      tpa.desc_catprg,
+                                      tpa.nivel,
+                                      tpa.id_programa,
+                                      tpa.id_categoria_programatica
+        						from sigep.tproyecto_actividad tpa
+                                where tpa.id_gestion = v_id_gestion - 1 loop
+            	--buscamos si existe la relacion de id_categoria_programatica para la siguiente gestion
+               if exists (select 1
+                          from pre.tcategoria_programatica_ids tcp
+                          where tcp.id_categoria_programatica_uno = v_registros.id_categoria_programatica) then
+
+
+                          --encontramos el id_categoria_programatica de la gestion siguiente
+                          select tcp.id_categoria_programatica_dos
+                          into v_id_categoria_dos
+                          from  pre.tcategoria_programatica_ids tcp
+                          where tcp.id_categoria_programatica_uno = v_registros.id_categoria_programatica;
+                          --si no existe registrado la relacion de partidas con clases de gasto realizamos la insercion en la tabla
+                          if not exists ( select 1
+                                          from  sigep.tproyecto_actividad tpa
+                                          where tpa.id_catprg = v_registros.id_catprg and tpa.id_entidad = v_registros.id_entidad and tpa.programa = v_registros.programa
+                                      	  and tpa.proyecto = v_registros.proyecto and tpa.actividad = v_registros.actividad  and tpa.desc_catprg = v_registros.desc_catprg
+                                      	  and tpa.nivel = v_registros.nivel and tpa.id_programa = v_registros.id_programa
+                                          and tpa.id_categoria_programatica = v_id_categoria_dos ) then
+
+                            insert into sigep.tproyecto_actividad(
+                            	id_usuario_reg,
+                                id_usuario_mod,
+                                fecha_reg,
+                                fecha_mod,
+                                estado_reg,
+                                id_usuario_ai,
+                                usuario_ai,
+
+                                id_catprg,
+                                id_entidad,
+                                programa,
+                                proyecto,
+                                actividad,
+                                desc_catprg,
+                                nivel,
+                                id_programa,
+                                id_categoria_programatica,
+                                id_gestion
+                            )values(
+                            	p_id_usuario,
+                                null,
+                                now(),
+                                null,
+                                'activo',
+                                null,
+                                null,
+
+                                v_registros.id_catprg,
+                                v_registros.id_entidad,
+                                v_registros.programa,
+                                v_registros.proyecto,
+                                v_registros.actividad,
+                                v_registros.desc_catprg,
+                                v_registros.nivel,
+                                v_registros.id_programa,
+                                v_id_categoria_dos,
+                                v_id_gestion
+                            );
+                          end if;
+               end if;
+            end loop;
+
+
+
+            --Definicion de la respuesta
+            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Proyecto Actividad Clonados');
+            v_resp = pxp.f_agrega_clave(v_resp,'gestion destino',v_id_gestion::varchar);
+
+            --Devuelve la respuesta
+            return v_resp;
+
+		end;
+
 	else
 
     	raise exception 'Transaccion inexistente: %',p_transaccion;
@@ -175,5 +279,4 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
-PARALLEL UNSAFE
 COST 100;

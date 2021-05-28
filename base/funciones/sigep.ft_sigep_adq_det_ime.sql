@@ -65,6 +65,8 @@ DECLARE
     v_monto_partida			numeric = 0;
     v_monto_rciva			numeric = 0;
     v_flag_rciva			boolean = true;
+
+    v_id_proceso_wf			integer;
 BEGIN
 
     v_nombre_funcion = 'sigep.ft_sigep_adq_det_ime';
@@ -877,7 +879,7 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 
 	/*********************************
  	#TRANSACCION:  'SIGEP_ENT_CIP_CHAR'
- 	#DESCRIPCION:	carga datos del siguiente estado de Cbte Contabilidad para envio a Sigep CIP
+ 	#DESCRIPCION:	C31 Normales para envio a Sigep CIP
  	#AUTOR:		franklin.espinoza
  	#FECHA:		15-10-2020 15:32:51
 	***********************************/
@@ -963,291 +965,292 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 						        WHERE te.id_proceso_wf = v_parametros.id_proceso_wf
 								group by tcg.nombre, scg.clase_gasto, te.id_entrega, fecha_tipo_cambio, cob.localidad loop
 
-		select cob.nro_tramite, ted.id_int_comprobante
-        into v_nro_tramite, v_id_int_comprobante
-        from conta.tentrega te
-       	inner join conta.tentrega_det ted on ted.id_entrega = te.id_entrega
-       	inner join conta.tint_comprobante cob on cob.id_int_comprobante = ted.id_int_comprobante
-		where te.id_entrega = v_datos_sigep.id_entrega
-        limit 1;
+			 IF v_datos_sigep.monto != 0 THEN
+              select cob.nro_tramite, ted.id_int_comprobante, cob.id_proceso_wf
+              into v_nro_tramite, v_id_int_comprobante, v_id_proceso_wf
+              from conta.tentrega te
+              inner join conta.tentrega_det ted on ted.id_entrega = te.id_entrega
+              inner join conta.tint_comprobante cob on cob.id_int_comprobante = ted.id_int_comprobante
+              where te.id_entrega = v_datos_sigep.id_entrega
+              limit 1;
 
-		select count(tdcv.id_doc_compra_venta)
-        into v_cont_doc
-        from conta.tint_comprobante tcom
-        inner join conta.tdoc_compra_venta tdcv on tdcv.id_int_comprobante = tcom.id_int_comprobante
-        where tcom.id_proceso_wf = v_parametros.id_proceso_wf and tdcv.id_plantilla = 1;
+              select count(tdcv.id_doc_compra_venta)
+              into v_cont_doc
+              from conta.tint_comprobante tcom
+              inner join conta.tdoc_compra_venta tdcv on tdcv.id_int_comprobante = tcom.id_int_comprobante
+              where tcom.id_proceso_wf = v_id_proceso_wf and tdcv.id_plantilla = 1;--v_parametros.id_proceso_wf
 
-		select sum(ts.importe_recurso)
-        into v_diferencia_redondeo
-        from conta.tint_transaccion ts
-        where ts.id_int_comprobante = v_id_int_comprobante and ts.id_detalle_plantilla_comprobante is null;
+              select sum(case when ts.importe_recurso !=0 then ts.importe_recurso else ts.importe_gasto_mt end )
+              into v_diferencia_redondeo
+              from conta.tint_transaccion ts
+              where ts.id_int_comprobante = v_id_int_comprobante and ts.id_detalle_plantilla_comprobante is null;
 
-        if v_diferencia_redondeo > 0 then
-        	v_monto_total = v_datos_sigep.monto-v_diferencia_redondeo;
-        else
-        	v_monto_total = v_datos_sigep.monto;
-        end if;
-        if v_cont_doc > 0 then
-			select sum(tp.monto_ejecutar_mo) - tpp.descuento_ley
-            into v_monto_total
-            from conta.tint_comprobante tc
-            inner join tes.tplan_pago tpp on tpp.id_int_comprobante = tc.id_int_comprobante
-            inner join tes.tprorrateo tp on tp.id_plan_pago = tpp.id_plan_pago
-            where tc.id_int_comprobante = v_datos_sigep.id_entrega
-            group by tpp.descuento_ley;
+              if v_diferencia_redondeo > 0 then
+                  v_monto_total = v_datos_sigep.monto-v_diferencia_redondeo;
+              else
+                  v_monto_total = v_datos_sigep.monto;
+              end if;
+              if v_cont_doc > 0 then
+                  select sum(tp.monto_ejecutar_mo) - tpp.descuento_ley
+                  into v_monto_total
+                  from conta.tint_comprobante tc
+                  inner join tes.tplan_pago tpp on tpp.id_int_comprobante = tc.id_int_comprobante
+                  inner join tes.tprorrateo tp on tp.id_plan_pago = tpp.id_plan_pago
+                  where tc.id_int_comprobante = v_id_int_comprobante--v_datos_sigep.id_entrega
+                  group by tpp.descuento_ley;
+              end if;
 
-        end if;
+              insert into sigep.tsigep_adq(
+                  estado_reg,
+                  num_tramite,
+                  estado,
+                  momento,
+                  ultimo_mensaje,
+                  clase_gasto,
+                  nro_preventivo,
+                  nro_comprometido,
+                  nro_devengado,
+                  localidad,
+                  id_usuario_reg,
+                  fecha_reg,
+                  id_usuario_ai,
+                  usuario_ai,
+                  id_usuario_mod,
+                  fecha_mod,
+                  id_int_comprobante
+                  ) values(
+                  'activo',
+                  v_nro_tramite,
+                  'pre-registro',
+                  v_parametros.momento,
+                  '',
+                  v_datos_sigep.nombre,
+                  null,
+                  null,
+                  null,
+                  v_datos_sigep.localidad,
+                  p_id_usuario,
+                  now(),
+                  v_parametros._id_usuario_ai,
+                  v_parametros._nombre_usuario_ai,
+                  null,
+                  null,
+                  v_datos_sigep.id_entrega
+                  )RETURNING id_sigep_adq into v_id_sigep_cont_s;
 
-        insert into sigep.tsigep_adq(
-			estado_reg,
-			num_tramite,
-			estado,
-			momento,
-			ultimo_mensaje,
-			clase_gasto,
-            nro_preventivo,
-            nro_comprometido,
-            nro_devengado,
-            localidad,
-			id_usuario_reg,
-			fecha_reg,
-			id_usuario_ai,
-			usuario_ai,
-			id_usuario_mod,
-			fecha_mod,
-            id_int_comprobante
-          	) values(
-			'activo',
-			v_nro_tramite,
-			'pre-registro',
-			v_parametros.momento,
-			'',
-			v_datos_sigep.nombre,
-            null,
-            null,
-            null,
-            v_datos_sigep.localidad,
-			p_id_usuario,
-			now(),
-			v_parametros._id_usuario_ai,
-			v_parametros._nombre_usuario_ai,
-			null,
-			null,
-            v_datos_sigep.id_entrega
-			)RETURNING id_sigep_adq into v_id_sigep_cont_s;
+                  v_id_sigep_regu_s[v_i]:=v_id_sigep_cont_s ;
+                  v_array_str:=v_id_sigep_cont_s;
+                  v_i = v_i+1;
 
-            v_id_sigep_regu_s[v_i]:=v_id_sigep_cont_s ;
-            v_array_str:=v_id_sigep_cont_s;
-            v_i = v_i+1;
+                 for v_registros in SELECT  te.id_entrega,
+                                            te.glosa,
+                                            par.codigo,
+                                            to_char(CURRENT_DATE,'DD/MM/YYYY')::date as fecha,
+                                            pregas.id_ptogto,
+                                            pregas.id_fuente,
+                                            pregas.id_organismo,
+                                            smo.moneda,
+                                            cp.id_categoria_programatica,
+                                            cp.codigo_categoria,
+                                            par.id_partida,
+                                            scg.clase_gasto,
+                                            scg.desc_clase_gasto,
+                                            --sum(transa.importe_gasto) /*+ sum(transa.importe_reversion)*/ as monto,
+                                            sum(tpror.monto_ejecutar_mo) as monto,
+                                            tpla.liquido_pagable,
+                                            tpro.id_beneficiario,
+                                            ban.banco as banco_benef,
+                                            trim(proc.nro_cuenta) as cuenta_benef,
+                                            tpla.liquido_pagable as monto_benef,
+                                            tpla.otros_descuentos as multas,
+                                            tpla.monto_retgar_mo as retenciones,
+                                            lib.banco,
+                                            lib.cuenta,
+                                            lib.libreta,
+                                            ges.gestion,
+                                            tpla.id_plan_pago,
+                                            transa.factor_reversion,
+                                            tpla.descuento_inter_serv,
+                                            tpla.descuento_ley,
+                                            mul.codigo as cod_multa,
+                                            pregas.id_catpry as sisin,
+                                            top.nro_preventivo
+                                      FROM conta.tentrega te
+                                      inner join conta.tentrega_det ted on ted.id_entrega = te.id_entrega
+                                      inner join conta.tint_comprobante cob on cob.id_int_comprobante = ted.id_int_comprobante
+                                      --inner join conta.tint_transaccion transa on transa.id_int_comprobante = cob.id_int_comprobante
+                                      inner join tes.tplan_pago tpla on tpla.id_int_comprobante = cob.id_int_comprobante
+                                      inner join tes.tprorrateo tpror on tpror.id_plan_pago = tpla.id_plan_pago
+                                      inner join conta.tint_transaccion transa on transa.id_int_transaccion = tpror.id_int_transaccion
 
-       for v_registros in SELECT  te.id_entrega,
-                                  te.glosa,
-                                  par.codigo,
-                                  to_char(CURRENT_DATE,'DD/MM/YYYY')::date as fecha,
-                                  pregas.id_ptogto,
-                                  pregas.id_fuente,
-                                  pregas.id_organismo,
-                                  smo.moneda,
-                                  cp.id_categoria_programatica,
-                                  cp.codigo_categoria,
-                                  par.id_partida,
-                                  scg.clase_gasto,
-                                  scg.desc_clase_gasto,
-                                  --sum(transa.importe_gasto) /*+ sum(transa.importe_reversion)*/ as monto,
-                                  sum(tpror.monto_ejecutar_mo) as monto,
-                                  tpla.liquido_pagable,
-                                  tpro.id_beneficiario,
-                                  ban.banco as banco_benef,
-                                  trim(proc.nro_cuenta) as cuenta_benef,
-                                  tpla.liquido_pagable as monto_benef,
-                                  tpla.otros_descuentos as multas,
-                                  tpla.monto_retgar_mo as retenciones,
-                                  lib.banco,
-                                  lib.cuenta,
-                                  lib.libreta,
-                                  ges.gestion,
-                                  tpla.id_plan_pago,
-                                  transa.factor_reversion,
-                                  tpla.descuento_inter_serv,
-                                  tpla.descuento_ley,
-                                  mul.codigo as cod_multa,
-                                  pregas.id_catpry as sisin,
-                                  top.nro_preventivo
-							FROM conta.tentrega te
-                            inner join conta.tentrega_det ted on ted.id_entrega = te.id_entrega
-                            inner join conta.tint_comprobante cob on cob.id_int_comprobante = ted.id_int_comprobante
-                            --inner join conta.tint_transaccion transa on transa.id_int_comprobante = cob.id_int_comprobante
-                            inner join tes.tplan_pago tpla on tpla.id_int_comprobante = cob.id_int_comprobante
-                            inner join tes.tprorrateo tpror on tpror.id_plan_pago = tpla.id_plan_pago
-                            inner join conta.tint_transaccion transa on transa.id_int_transaccion = tpror.id_int_transaccion
+                                      inner join conta.tcuenta cue on cue.id_cuenta = transa.id_cuenta
+                                      inner join pre.tpartida par on par.id_partida = transa.id_partida
+                                      inner join pre.vpresupuesto_cc cc on cc.id_centro_costo = transa.id_centro_costo
+                                      inner join pre.vcategoria_programatica cp ON cp.id_categoria_programatica = cc.id_categoria_prog
+                                      inner join pre.tclase_gasto_partida tcgp ON tcgp.id_partida = par.id_partida
+                                      inner join pre.tclase_gasto cg ON cg.id_clase_gasto= tcgp.id_clase_gasto
+                                      inner join sigep.tclase_gasto_cip scg ON scg.id_clase_gasto = cg.id_clase_gasto
+                                      inner JOIN sigep.tproyecto_actividad proyact on proyact.id_categoria_programatica = cp.id_categoria_programatica
+                                      inner JOIN sigep.tobjeto_gasto objgas on objgas.id_partida = par.id_partida  and objgas.id_gestion = cp.id_gestion
+                                      inner join sigep.tfuente_financiamiento tff on tff.id_cp_fuente_fin = cp.id_cp_fuente_fin
+                                      inner join sigep.tunidad_ejecutora ue on ue.id_unidad_ejecutora = cp.id_unidad_ejecutora
+                                      inner JOIN sigep.tpresupuesto_gasto pregas on proyact.id_catprg = pregas.id_catprg and pregas.id_gestion = cp.id_gestion and pregas.id_objeto = objgas.id_objeto and pregas.id_ue = ue.id_ue and pregas.id_fuente = tff.id_fuente
 
-                            inner join conta.tcuenta cue on cue.id_cuenta = transa.id_cuenta
-                            inner join pre.tpartida par on par.id_partida = transa.id_partida
-                            inner join pre.vpresupuesto_cc cc on cc.id_centro_costo = transa.id_centro_costo
-                            inner join pre.vcategoria_programatica cp ON cp.id_categoria_programatica = cc.id_categoria_prog
-                            inner join pre.tclase_gasto_partida tcgp ON tcgp.id_partida = par.id_partida
-                            inner join pre.tclase_gasto cg ON cg.id_clase_gasto= tcgp.id_clase_gasto
-                            inner join sigep.tclase_gasto_cip scg ON scg.id_clase_gasto = cg.id_clase_gasto
-                            inner JOIN sigep.tproyecto_actividad proyact on proyact.id_categoria_programatica = cp.id_categoria_programatica
-                            inner JOIN sigep.tobjeto_gasto objgas on objgas.id_partida = par.id_partida  and objgas.id_gestion = cp.id_gestion
-                            inner join sigep.tfuente_financiamiento tff on tff.id_cp_fuente_fin = cp.id_cp_fuente_fin
-                            inner join sigep.tunidad_ejecutora ue on ue.id_unidad_ejecutora = cp.id_unidad_ejecutora
-                            inner JOIN sigep.tpresupuesto_gasto pregas on proyact.id_catprg = pregas.id_catprg and pregas.id_gestion = cp.id_gestion and pregas.id_objeto = objgas.id_objeto and pregas.id_ue = ue.id_ue and pregas.id_fuente = tff.id_fuente
+                                      --inner join tes.tplan_pago tpla on tpla.id_int_comprobante = cob.id_int_comprobante
+                                      inner join tes.tobligacion_pago top on top.id_obligacion_pago = tpla.id_obligacion_pago
 
-                            --inner join tes.tplan_pago tpla on tpla.id_int_comprobante = cob.id_int_comprobante
-                            inner join tes.tobligacion_pago top on top.id_obligacion_pago = tpla.id_obligacion_pago
+                                      LEFT JOIN tes.tcuenta_bancaria cba ON cba.id_cuenta_bancaria = tpla.id_cuenta_bancaria
+                                      left JOIN sigep.tcuenta_bancaria scba ON scba.id_cuenta_bancaria = cba.id_cuenta_bancaria
 
-                            LEFT JOIN tes.tcuenta_bancaria cba ON cba.id_cuenta_bancaria = tpla.id_cuenta_bancaria
-                            left JOIN sigep.tcuenta_bancaria scba ON scba.id_cuenta_bancaria = cba.id_cuenta_bancaria
+                                      inner join param.tproveedor_cta_bancaria proc on proc.id_proveedor_cta_bancaria = tpla.id_proveedor_cta_bancaria
+                                      inner join param.tproveedor tpro on tpro.id_proveedor = proc.id_proveedor
+                                      inner join sigep.tbanco ban on ban.id_institucion = proc.id_banco_beneficiario
+                                      inner join sigep.tlibreta lib on lib.id_cuenta_bancaria = tpla.id_cuenta_bancaria
+                                      left join sigep.tmulta mul on mul.id_multa = tpla.id_multa
+                                      inner JOIN sigep.tmoneda smo ON smo.id_moneda = cob.id_moneda
+                                      inner JOIN param.tgestion ges ON ges.id_gestion = cp.id_gestion
+                                      WHERE te.id_proceso_wf = v_parametros.id_proceso_wf
 
-                            inner join param.tproveedor_cta_bancaria proc on proc.id_proveedor_cta_bancaria = tpla.id_proveedor_cta_bancaria
-                            inner join param.tproveedor tpro on tpro.id_proveedor = proc.id_proveedor
-                            inner join sigep.tbanco ban on ban.id_institucion = proc.id_banco_beneficiario
-                            inner join sigep.tlibreta lib on lib.id_cuenta_bancaria = tpla.id_cuenta_bancaria
-                            left join sigep.tmulta mul on mul.id_multa = tpla.id_multa
-                            inner JOIN sigep.tmoneda smo ON smo.id_moneda = cob.id_moneda
-                            inner JOIN param.tgestion ges ON ges.id_gestion = cp.id_gestion
-                           	WHERE te.id_proceso_wf = v_parametros.id_proceso_wf
-
-                           	group by  te.id_entrega, cob.glosa1, par.codigo, pregas.id_ptogto,
-                                      pregas.id_fuente, pregas.id_organismo, smo.moneda, cp.id_categoria_programatica, cp.codigo_categoria,
-                                      par.id_partida, scg.clase_gasto, scg.desc_clase_gasto, scba.banco, scba.cuenta, tpro.id_beneficiario,
-                                      ban.banco, proc.nro_cuenta, tpla.monto, lib.banco, lib.cuenta, lib.libreta,ges.gestion, mul.codigo,pregas.id_catpry,
-                                      tpla.otros_descuentos, tpla.monto_retgar_mo, tpla.liquido_pagable, tpla.id_plan_pago, transa.factor_reversion,
-                                      top.nro_preventivo, tpla.descuento_ley loop
-
-
-            v_monto_total_prorra = v_registros.monto;
-            v_monto_partida = v_monto_total_prorra;
-                --v_monto_total_prorra =  v_registros.monto + ((v_registros.monto * 0.13)/0.87);
-            --end if;
-            v_monto_total_auth = v_monto_total; --raise 'totales: %, %', v_monto_total_auth, v_registros.retenciones;
-            if v_registros.retenciones > 0 then
-            	v_monto_total_prorra = v_monto_total_prorra * 0.93;
-
-                --begin verificar redondeo
-            	if round(v_monto_total_prorra,2) + v_monto_verficador <= v_registros.liquido_pagable then
-					v_monto_verficador = v_monto_verficador + round(v_monto_total_prorra,2);
-                    v_monto_partida = round(v_monto_total_prorra,2);
-                else
-                	v_monto_verficador = v_monto_verficador + trunc(v_monto_total_prorra,2);
-                    v_monto_partida = trunc(v_monto_total_prorra,2);
-            	end if;
-            	--end
-
-                v_monto_total_auth = v_monto_total_auth - v_registros.retenciones;
-       		end if;
-
-            if v_registros.descuento_inter_serv > 0 then
-            	--v_monto_total_prorra = v_monto_total_prorra - v_registros.descuento_inter_serv;
-                v_monto_partida = v_monto_partida - v_registros.descuento_inter_serv;
-                v_monto_total_auth = v_monto_total_auth - v_registros.descuento_inter_serv;
-            end if;
-
-            if v_registros.descuento_ley > 0 then
-            	--v_monto_total_prorra = v_monto_total_prorra - v_registros.descuento_ley;
-                v_monto_partida = v_monto_partida - v_registros.descuento_ley;
-            end if;
+                                      group by  te.id_entrega, cob.glosa1, par.codigo, pregas.id_ptogto,
+                                                pregas.id_fuente, pregas.id_organismo, smo.moneda, cp.id_categoria_programatica, cp.codigo_categoria,
+                                                par.id_partida, scg.clase_gasto, scg.desc_clase_gasto, scba.banco, scba.cuenta, tpro.id_beneficiario,
+                                                ban.banco, proc.nro_cuenta, tpla.monto, lib.banco, lib.cuenta, lib.libreta,ges.gestion, mul.codigo,pregas.id_catpry,
+                                                tpla.otros_descuentos, tpla.monto_retgar_mo, tpla.liquido_pagable, tpla.id_plan_pago, transa.factor_reversion,
+                                                top.nro_preventivo, tpla.descuento_ley loop
 
 
+                      v_monto_total_prorra = v_registros.monto;
+                      v_monto_partida = v_monto_total_prorra;
+                          --v_monto_total_prorra =  v_registros.monto + ((v_registros.monto * 0.13)/0.87);
+                      --end if;
+                      v_monto_total_auth = v_monto_total; --raise 'totales: %, %', v_monto_total_auth, v_registros.retenciones;
+                      if v_registros.retenciones > 0 then
+                          v_monto_total_prorra = v_monto_total_prorra * 0.93;
 
-       		if (v_datos_sigep.clase_gasto = v_registros.clase_gasto )then
-        		insert into sigep.tsigep_adq_det(
-            		estado_reg,
-		            id_sigep_adq,
-					gestion,
-					clase_gasto_cip,
-					moneda,
-					total_autorizado_mo,
-					id_ptogto,
-					monto_partida,
-					tipo_doc_rdo,
-					nro_doc_rdo,
-					sec_doc_rdo,
-					fecha_elaboracion,
-					justificacion,
-		            beneficiario,
-		            banco_benef,
-		            cuenta_benef,
-		            id_fuente,
-		            id_organismo,
-		            banco_origen,
-		            cta_origen,
-		            libreta_origen,
-		            monto_benef,
-                    usuario_apro,
-                    multa,
-                    retencion,
-                    liquido_pagable,
-                    sisin,
-                    otfin,
-                    usuario_firm,
-                    cod_multa,
-					id_usuario_reg,
-					fecha_reg,
-					id_usuario_ai,
-					usuario_ai,
-					id_usuario_mod,
-					fecha_mod,
-                    fecha_tipo_cambio,
-                    nro_preventivo
-		          	) values(
-					'activo',
-        		    v_id_sigep_cont_s,
-					v_registros.gestion,
-					v_registros.clase_gasto::int8,
-					v_registros.moneda,
-					v_monto_total_auth,--v_datos_sigep.monto,
-					v_registros.id_ptogto,
-					v_monto_partida,--v_monto_total_prorra, --v_registros.monto,
-                    '4',	--v_parametros.tipo_doc_rdo
-					v_registros.id_entrega,	--v_parametros.nro_doc_rdo,
-					'1',	--v_parametros.sec_doc_rdo,
-					v_registros.fecha, --fecha_elaboracion
-					--upper(concat('Para registrar el ', v_registros.glosa1, ',cbte ', v_registros.nro_tramite,', de acuerdo a documentación adjunta.')),
-		            v_registros.glosa,
-                    v_registros.id_beneficiario,
-		            v_registros.banco_benef,
-		            v_registros.cuenta_benef,
-		            v_registros.id_fuente,
-        		    v_registros.id_organismo,
-		            v_registros.banco,
-        		    v_registros.cuenta,
-		            v_registros.libreta,
-		            v_registros.liquido_pagable,
-                    v_aprobador,
-                    v_registros.multas,
-                    v_registros.retenciones,
-                    v_registros.liquido_pagable,
-                    v_registros.sisin,
-                    '',
-                    v_firmador,
-                    v_registros.cod_multa,
-					v_user,
-					now(),
-					v_parametros._id_usuario_ai,
-					v_parametros._nombre_usuario_ai,
-					null,
-					null,
-                    v_datos_sigep.fecha_tipo_cambio,
-                    v_registros.nro_preventivo
-		           );
-                END IF;
+                          --begin verificar redondeo
+                          if round(v_monto_total_prorra,2) + v_monto_verficador <= v_registros.liquido_pagable then
+                              v_monto_verficador = v_monto_verficador + round(v_monto_total_prorra,2);
+                              v_monto_partida = round(v_monto_total_prorra,2);
+                          else
+                              v_monto_verficador = v_monto_verficador + trunc(v_monto_total_prorra,2);
+                              v_monto_partida = trunc(v_monto_total_prorra,2);
+                          end if;
+                          --end
 
-            END LOOP;
+                          v_monto_total_auth = v_monto_total_auth - v_registros.retenciones;
+                      end if;
+
+                      if v_registros.descuento_inter_serv > 0 then
+                          --v_monto_total_prorra = v_monto_total_prorra - v_registros.descuento_inter_serv;
+                          v_monto_partida = v_monto_partida - v_registros.descuento_inter_serv;
+                          v_monto_total_auth = v_monto_total_auth - v_registros.descuento_inter_serv;
+                      end if;
+
+                      if v_registros.descuento_ley > 0 then
+                          --v_monto_total_prorra = v_monto_total_prorra - v_registros.descuento_ley;
+                          v_monto_partida = v_monto_partida - v_registros.descuento_ley;
+                      end if;
+
+
+
+                      if (v_datos_sigep.clase_gasto = v_registros.clase_gasto )then
+                          insert into sigep.tsigep_adq_det(
+                              estado_reg,
+                              id_sigep_adq,
+                              gestion,
+                              clase_gasto_cip,
+                              moneda,
+                              total_autorizado_mo,
+                              id_ptogto,
+                              monto_partida,
+                              tipo_doc_rdo,
+                              nro_doc_rdo,
+                              sec_doc_rdo,
+                              fecha_elaboracion,
+                              justificacion,
+                              beneficiario,
+                              banco_benef,
+                              cuenta_benef,
+                              id_fuente,
+                              id_organismo,
+                              banco_origen,
+                              cta_origen,
+                              libreta_origen,
+                              monto_benef,
+                              usuario_apro,
+                              multa,
+                              retencion,
+                              liquido_pagable,
+                              sisin,
+                              otfin,
+                              usuario_firm,
+                              cod_multa,
+                              id_usuario_reg,
+                              fecha_reg,
+                              id_usuario_ai,
+                              usuario_ai,
+                              id_usuario_mod,
+                              fecha_mod,
+                              fecha_tipo_cambio,
+                              nro_preventivo
+                              ) values(
+                              'activo',
+                              v_id_sigep_cont_s,
+                              v_registros.gestion,
+                              v_registros.clase_gasto::int8,
+                              v_registros.moneda,
+                              v_monto_total_auth,--v_registros.liquido_pagable --v_monto_total_auth,--v_datos_sigep.monto,
+                              v_registros.id_ptogto,
+                              v_monto_partida,--v_monto_total_prorra, --v_registros.monto,
+                              '4',	--v_parametros.tipo_doc_rdo
+                              v_registros.id_entrega,	--v_parametros.nro_doc_rdo,
+                              '1',	--v_parametros.sec_doc_rdo,
+                              v_registros.fecha, --fecha_elaboracion
+                              --upper(concat('Para registrar el ', v_registros.glosa1, ',cbte ', v_registros.nro_tramite,', de acuerdo a documentación adjunta.')),
+                              v_registros.glosa,
+                              v_registros.id_beneficiario,
+                              v_registros.banco_benef,
+                              v_registros.cuenta_benef,
+                              v_registros.id_fuente,
+                              v_registros.id_organismo,
+                              v_registros.banco,
+                              v_registros.cuenta,
+                              v_registros.libreta,
+                              v_registros.liquido_pagable,
+                              v_aprobador,
+                              v_registros.multas,
+                              v_registros.retenciones,
+                              v_registros.liquido_pagable,
+                              v_registros.sisin,
+                              '',
+                              v_firmador,
+                              v_registros.cod_multa,
+                              v_user,
+                              now(),
+                              v_parametros._id_usuario_ai,
+                              v_parametros._nombre_usuario_ai,
+                              null,
+                              null,
+                              v_datos_sigep.fecha_tipo_cambio,
+                              v_registros.nro_preventivo
+                             );
+                          END IF;
+
+                      END LOOP;
+			END IF;
           END LOOP;
 
           select array_to_string(v_id_sigep_regu_s,',','*')
           into v_array_str;
 
-          	-- si hay mas de un estado disponible  preguntamos al usuario
-          	v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Consulta datos Sigep se almaceno con éxito (id_sigep_cont'||v_id_sigep_cont_s||')');
-          	v_resp = pxp.f_agrega_clave(v_resp,'id_sigep',v_array_str::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'momento',v_parametros.momento::varchar);
+          -- si hay mas de un estado disponible  preguntamos al usuario
+          v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Consulta datos Sigep se almaceno con éxito (id_sigep_cont'||v_id_sigep_cont_s||')');
+          v_resp = pxp.f_agrega_clave(v_resp,'id_sigep',v_array_str::varchar);
+          v_resp = pxp.f_agrega_clave(v_resp,'momento',v_parametros.momento::varchar);
 
 
-          	-- Devuelve la respuesta
-          	return v_resp;
+          -- Devuelve la respuesta
+          return v_resp;
 
 
      end;
@@ -1327,179 +1330,179 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 								group by cob.nro_tramite, tcg.nombre, scg.clase_gasto, cob.id_int_comprobante loop
 
 
+			--IF v_datos_sigep.monto != 0 THEN
+                insert into sigep.tsigep_adq(
+                    estado_reg,
+                    num_tramite,
+                    estado,
+                    momento,
+                    ultimo_mensaje,
+                    clase_gasto,
+                    nro_preventivo,
+                    nro_comprometido,
+                    nro_devengado,
+                    localidad,
+                    id_usuario_reg,
+                    fecha_reg,
+                    id_usuario_ai,
+                    usuario_ai,
+                    id_usuario_mod,
+                    fecha_mod,
+                    id_int_comprobante
+                ) values(
+                  'activo',
+                  v_datos_sigep.nro_tramite,
+                  'pre-registro',
+                  v_parametros.momento,
+                  '',
+                  v_datos_sigep.nombre,
+                  null,
+                  null,
+                  null,
+                  v_parametros.localidad,
+                  p_id_usuario,
+                  now(),
+                  v_parametros._id_usuario_ai,
+                  v_parametros._nombre_usuario_ai,
+                  null,
+                  null,
+                  v_datos_sigep.id_int_comprobante
+                  )RETURNING id_sigep_adq into v_id_sigep_cont_s;
 
-        insert into sigep.tsigep_adq(
-            estado_reg,
-            num_tramite,
-            estado,
-            momento,
-            ultimo_mensaje,
-            clase_gasto,
-            nro_preventivo,
-            nro_comprometido,
-            nro_devengado,
-            localidad,
-            id_usuario_reg,
-            fecha_reg,
-            id_usuario_ai,
-            usuario_ai,
-            id_usuario_mod,
-            fecha_mod,
-            id_int_comprobante
-        ) values(
-            'activo',
-            v_datos_sigep.nro_tramite,
-            'pre-registro',
-            v_parametros.momento,
-            '',
-            v_datos_sigep.nombre,
-            null,
-            null,
-            null,
-            v_parametros.localidad,
-            p_id_usuario,
-            now(),
-            v_parametros._id_usuario_ai,
-            v_parametros._nombre_usuario_ai,
-            null,
-            null,
-            v_datos_sigep.id_int_comprobante
-			  )RETURNING id_sigep_adq into v_id_sigep_cont_s;
-
-            v_id_sigep_regu_s[v_i]:=v_id_sigep_cont_s ;
-            v_array_str:=v_id_sigep_cont_s;
-            v_i = v_i+1;
-
-
-       for v_registros in SELECT
-                          cob.id_int_comprobante,
-        							    cob.nro_tramite,
-        							    cob.glosa1,
-					                --cue.nro_cuenta,
-					                par.codigo,
-					                --cc.id_centro_costo,
-                          scba.banco,
-					                scba.cuenta,
-					                to_char(CURRENT_DATE,'DD/MM/YYYY')::date as fecha,
-					                pregas.id_ptogto,
-					                pregas.id_fuente,
-					                pregas.id_organismo,
-					                smo.moneda,
-					                cp.id_categoria_programatica,
-					                cp.codigo_categoria,
-					                par.id_partida,
-					                scg.clase_gasto,
-					                scg.desc_clase_gasto,
-					                sum(transa.importe_gasto) + sum(transa.importe_reversion) as monto,
-                          ges.gestion
-						       FROM conta.tint_comprobante cob
-					        	inner join conta.tint_transaccion transa on transa.id_int_comprobante = cob.id_int_comprobante
-					          inner join conta.tcuenta cue on cue.id_cuenta = transa.id_cuenta
-                    inner join pre.tpartida par on par.id_partida = transa.id_partida
-                    inner join pre.vpresupuesto_cc cc on cc.id_centro_costo = transa.id_centro_costo
-					          inner join pre.vcategoria_programatica cp ON cp.id_categoria_programatica = cc.id_categoria_prog
-					          inner join pre.tclase_gasto_partida tcgp ON tcgp.id_partida = par.id_partida
-					          inner join pre.tclase_gasto cg ON cg.id_clase_gasto= tcgp.id_clase_gasto
-					        	inner join sigep.tclase_gasto_cip scg ON scg.id_clase_gasto = cg.id_clase_gasto
-					          inner JOIN sigep.tproyecto_actividad proyact on proyact.id_categoria_programatica = cp.id_categoria_programatica
-					          inner JOIN sigep.tobjeto_gasto objgas on objgas.id_partida = par.id_partida  and objgas.id_gestion = cp.id_gestion
-					          inner join sigep.tfuente_financiamiento tff on tff.id_cp_fuente_fin = cp.id_cp_fuente_fin
-                    inner join sigep.tunidad_ejecutora ue on ue.id_unidad_ejecutora = cp.id_unidad_ejecutora
-                    inner JOIN sigep.tpresupuesto_gasto pregas on proyact.id_catprg = pregas.id_catprg and pregas.id_gestion = cp.id_gestion and pregas.id_objeto = objgas.id_objeto and pregas.id_ue = ue.id_ue and pregas.id_fuente = tff.id_fuente
-                    inner JOIN tes.tcuenta_bancaria cba ON cba.id_cuenta_bancaria = cob.id_cuenta_bancaria
-                    inner JOIN sigep.tcuenta_bancaria scba ON scba.id_cuenta_bancaria = cba.id_cuenta_bancaria
-
-					          INNER JOIN sigep.tmoneda smo ON smo.id_moneda = cob.id_moneda
-                    INNER JOIN param.tgestion ges ON ges.id_gestion = cp.id_gestion
-						       WHERE cob.id_proceso_wf = v_parametros.id_proceso_wf /*AND par.id_partida = v_datos_sigep.id_partida*/
-
-						       group by cob.id_int_comprobante, cob.glosa1, /*cue.nro_cuenta,*/ par.codigo, /*cc.id_centro_costo,*/ pregas.id_ptogto,
-						                pregas.id_fuente, pregas.id_organismo, smo.moneda, cp.id_categoria_programatica, cp.codigo_categoria,
-						                par.id_partida, scg.clase_gasto, scg.desc_clase_gasto, scba.banco, scba.cuenta, ges.gestion loop
-
-       		IF (v_datos_sigep.clase_gasto = v_registros.clase_gasto )then
-        		insert into sigep.tsigep_adq_det(
-            		estado_reg,
-		            id_sigep_adq,
-                gestion,
-                clase_gasto_cip,
-                moneda,
-                total_autorizado_mo,
-                id_ptogto,
-                monto_partida,
-                tipo_doc_rdo,
-                nro_doc_rdo,
-                sec_doc_rdo,
-                fecha_elaboracion,
-                justificacion,
-		            beneficiario,
-		            banco_benef,
-		            cuenta_benef,
-		            id_fuente,
-		            id_organismo,
-		            banco_origen,
-		            cta_origen,
-		            libreta_origen,
-		            monto_benef,
-                id_usuario_reg,
-                fecha_reg,
-                id_usuario_ai,
-                usuario_ai,
-                id_usuario_mod,
-                fecha_mod,
-                liquido_pagable,
-                fecha_tipo_cambio
-		        ) values(
-                'activo',
-                v_id_sigep_cont_s,
-                v_registros.gestion,
-                v_registros.clase_gasto::int8,
-                v_registros.moneda,
-                v_datos_sigep.monto,
-                v_registros.id_ptogto,
-                v_registros.monto,
-                '74',	--v_parametros.tipo_doc_rdo
-                v_registros.id_int_comprobante,	--v_parametros.nro_doc_rdo,
-                '1',	--v_parametros.sec_doc_rdo,
-                v_registros.fecha, --fecha_elaboracion
-                --upper(concat('Para registrar el ', v_registros.glosa1, ',cbte ', v_registros.nro_tramite,', de acuerdo a documentación adjunta.')),
-		        upper(v_registros.glosa1),
-                    '83797',
-		            '',
-		            '',
-		            v_registros.id_fuente,
-        		    v_registros.id_organismo,
-		            v_registros.banco,
-        		    v_registros.cuenta,
-		            '',
-		            v_datos_sigep.monto,
-                v_user,
-                now(),
-                v_parametros._id_usuario_ai,
-                v_parametros._nombre_usuario_ai,
-                null,
-                null,
-                v_datos_sigep.monto,
-                v_datos_sigep.fecha_tipo_cambio
-		        );
-
-          END IF;
-
-            END LOOP;
-          END LOOP;
-
-          select array_to_string(v_id_sigep_regu_s,',','*')
-          into v_array_str;
+                v_id_sigep_regu_s[v_i]:=v_id_sigep_cont_s ;
+                v_array_str:=v_id_sigep_cont_s;
+                v_i = v_i+1;
 
 
-          	-- si hay mas de un estado disponible  preguntamos al usuario
-          	v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Consulta datos Sigep se almaceno con éxito (id_sigep_cont'||v_id_sigep_cont_s||')');
-          	v_resp = pxp.f_agrega_clave(v_resp,'id_sigep',v_array_str::varchar);
-            v_resp = pxp.f_agrega_clave(v_resp,'momento',v_parametros.momento::varchar);
+         		for v_registros in SELECT
+                            cob.id_int_comprobante,
+                                          cob.nro_tramite,
+                                          cob.glosa1,
+                                      --cue.nro_cuenta,
+                                      par.codigo,
+                                      --cc.id_centro_costo,
+                            scba.banco,
+                                      scba.cuenta,
+                                      to_char(CURRENT_DATE,'DD/MM/YYYY')::date as fecha,
+                                      pregas.id_ptogto,
+                                      pregas.id_fuente,
+                                      pregas.id_organismo,
+                                      smo.moneda,
+                                      cp.id_categoria_programatica,
+                                      cp.codigo_categoria,
+                                      par.id_partida,
+                                      scg.clase_gasto,
+                                      scg.desc_clase_gasto,
+                                      sum(transa.importe_gasto) + sum(transa.importe_reversion) as monto,
+                            ges.gestion
+                                 FROM conta.tint_comprobante cob
+                                  inner join conta.tint_transaccion transa on transa.id_int_comprobante = cob.id_int_comprobante
+                                inner join conta.tcuenta cue on cue.id_cuenta = transa.id_cuenta
+                      inner join pre.tpartida par on par.id_partida = transa.id_partida
+                      inner join pre.vpresupuesto_cc cc on cc.id_centro_costo = transa.id_centro_costo
+                                inner join pre.vcategoria_programatica cp ON cp.id_categoria_programatica = cc.id_categoria_prog
+                                inner join pre.tclase_gasto_partida tcgp ON tcgp.id_partida = par.id_partida
+                                inner join pre.tclase_gasto cg ON cg.id_clase_gasto= tcgp.id_clase_gasto
+                                  inner join sigep.tclase_gasto_cip scg ON scg.id_clase_gasto = cg.id_clase_gasto
+                                inner JOIN sigep.tproyecto_actividad proyact on proyact.id_categoria_programatica = cp.id_categoria_programatica
+                                inner JOIN sigep.tobjeto_gasto objgas on objgas.id_partida = par.id_partida  and objgas.id_gestion = cp.id_gestion
+                                inner join sigep.tfuente_financiamiento tff on tff.id_cp_fuente_fin = cp.id_cp_fuente_fin
+                      inner join sigep.tunidad_ejecutora ue on ue.id_unidad_ejecutora = cp.id_unidad_ejecutora
+                      inner JOIN sigep.tpresupuesto_gasto pregas on proyact.id_catprg = pregas.id_catprg and pregas.id_gestion = cp.id_gestion and pregas.id_objeto = objgas.id_objeto and pregas.id_ue = ue.id_ue and pregas.id_fuente = tff.id_fuente
+                      inner JOIN tes.tcuenta_bancaria cba ON cba.id_cuenta_bancaria = cob.id_cuenta_bancaria
+                      inner JOIN sigep.tcuenta_bancaria scba ON scba.id_cuenta_bancaria = cba.id_cuenta_bancaria
+
+                                INNER JOIN sigep.tmoneda smo ON smo.id_moneda = cob.id_moneda
+                      INNER JOIN param.tgestion ges ON ges.id_gestion = cp.id_gestion
+                                 WHERE cob.id_proceso_wf = v_parametros.id_proceso_wf /*AND par.id_partida = v_datos_sigep.id_partida*/
+
+                                 group by cob.id_int_comprobante, cob.glosa1, /*cue.nro_cuenta,*/ par.codigo, /*cc.id_centro_costo,*/ pregas.id_ptogto,
+                                          pregas.id_fuente, pregas.id_organismo, smo.moneda, cp.id_categoria_programatica, cp.codigo_categoria,
+                                          par.id_partida, scg.clase_gasto, scg.desc_clase_gasto, scba.banco, scba.cuenta, ges.gestion loop
+
+              		IF (v_datos_sigep.clase_gasto = v_registros.clase_gasto )then
+                      insert into sigep.tsigep_adq_det(
+                          estado_reg,
+                          id_sigep_adq,
+                      gestion,
+                      clase_gasto_cip,
+                      moneda,
+                      total_autorizado_mo,
+                      id_ptogto,
+                      monto_partida,
+                      tipo_doc_rdo,
+                      nro_doc_rdo,
+                      sec_doc_rdo,
+                      fecha_elaboracion,
+                      justificacion,
+                          beneficiario,
+                          banco_benef,
+                          cuenta_benef,
+                          id_fuente,
+                          id_organismo,
+                          banco_origen,
+                          cta_origen,
+                          libreta_origen,
+                          monto_benef,
+                      id_usuario_reg,
+                      fecha_reg,
+                      id_usuario_ai,
+                      usuario_ai,
+                      id_usuario_mod,
+                      fecha_mod,
+                      liquido_pagable,
+                      fecha_tipo_cambio
+                      ) values(
+                      'activo',
+                      v_id_sigep_cont_s,
+                      v_registros.gestion,
+                      v_registros.clase_gasto::int8,
+                      v_registros.moneda,
+                      v_datos_sigep.monto,
+                      v_registros.id_ptogto,
+                      v_registros.monto,
+                      '74',	--v_parametros.tipo_doc_rdo
+                      v_registros.id_int_comprobante,	--v_parametros.nro_doc_rdo,
+                      '1',	--v_parametros.sec_doc_rdo,
+                      v_registros.fecha, --fecha_elaboracion
+                      --upper(concat('Para registrar el ', v_registros.glosa1, ',cbte ', v_registros.nro_tramite,', de acuerdo a documentación adjunta.')),
+                      upper(v_registros.glosa1),
+                          '83797',
+                          '',
+                          '',
+                          v_registros.id_fuente,
+                          v_registros.id_organismo,
+                          v_registros.banco,
+                          v_registros.cuenta,
+                          '',
+                          v_datos_sigep.monto,
+                      v_user,
+                      now(),
+                      v_parametros._id_usuario_ai,
+                      v_parametros._nombre_usuario_ai,
+                      null,
+                      null,
+                      v_datos_sigep.monto,
+                      v_datos_sigep.fecha_tipo_cambio
+                      );
+
+            		END IF;
+
+            	END LOOP;
+        	--END IF;
+        END LOOP;
+
+        select array_to_string(v_id_sigep_regu_s,',','*') into v_array_str;
 
 
-          	-- Devuelve la respuesta
-          	return v_resp;
+		-- si hay mas de un estado disponible  preguntamos al usuario
+		v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Consulta datos Sigep se almaceno con éxito (id_sigep_cont'||v_id_sigep_cont_s||')');
+		v_resp = pxp.f_agrega_clave(v_resp,'id_sigep',v_array_str::varchar);
+		v_resp = pxp.f_agrega_clave(v_resp,'momento',v_parametros.momento::varchar);
+
+
+		-- Devuelve la respuesta
+		return v_resp;
      end;
 
    /*********************************
@@ -1579,7 +1582,7 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
                                      FROM conta.tentrega te
 									 inner join conta.tentrega_det ted on ted.id_entrega = te.id_entrega
         							 inner join conta.tint_comprobante cob on cob.id_int_comprobante = ted.id_int_comprobante
-        							 INNER JOIN conta.tint_transaccion tra on tra.id_int_comprobante = cob.id_int_comprobante
+        							 INNER JOIN conta.tint_transaccion tra on tra.id_int_comprobante = cob.id_int_comprobante and tra.importe_gasto != 0
         							 INNER JOIN pre.tpartida tpar ON tpar.id_partida = tra.id_partida
 							      	 INNER JOIN pre.tclase_gasto_partida tcgp ON tcgp.id_partida = tpar.id_partida
 							      	 INNER JOIN pre.tpresupuesto tp ON tp.id_presupuesto = tra.id_centro_costo
@@ -1666,7 +1669,7 @@ for v_registros in (	SELECT 	vcp.codigo_programa ,
 								FROM conta.tentrega te
        							inner join conta.tentrega_det ted on ted.id_entrega = te.id_entrega
         						inner join conta.tint_comprobante cob on cob.id_int_comprobante = ted.id_int_comprobante
-                                inner join conta.tint_transaccion transa on transa.id_int_comprobante = cob.id_int_comprobante
+                                inner join conta.tint_transaccion transa on transa.id_int_comprobante = cob.id_int_comprobante and transa.importe_gasto != 0
                                 inner join conta.tcuenta cue on cue.id_cuenta = transa.id_cuenta
                                 inner join pre.tpartida par on par.id_partida = transa.id_partida
                                 inner join pre.vpresupuesto_cc cc on cc.id_centro_costo = transa.id_centro_costo

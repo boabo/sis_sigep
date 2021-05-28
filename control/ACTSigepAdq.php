@@ -81,6 +81,13 @@ class ACTSigepAdq extends ACTbase{
         $this->res=$this->objFunc->StatusC31($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
+
+    function StatusPassC31(){
+        $this->objFunc=$this->create('MODSigepAdq');
+        $this->res=$this->objFunc->StatusPassC31($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
     function resultadoMsg(){
         $this->objFunc=$this->create('MODSigepAdq');
         $this->res=$this->objFunc->resultadoMsg($this->objParam);
@@ -258,10 +265,10 @@ class ACTSigepAdq extends ACTbase{
 
         $cone = new conexion();
         $link = $cone->conectarpdo();
-
+        //var_dump('$id_entrega', $id_entrega);exit;
         $sql = "SELECT sig.nro_preventivo, sig.nro_comprometido, sig.nro_devengado 
                 FROM sigep.tsigep_adq sig
-                WHERE  sig.id_int_comprobante = ". $id_entrega;
+                WHERE sig.estado_reg = 'activo' and sig.id_int_comprobante = ". $id_entrega;
 
         $preventivo = '';
         $compromiso = '';
