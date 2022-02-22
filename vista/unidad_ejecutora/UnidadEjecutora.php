@@ -19,6 +19,10 @@ Phx.vista.UnidadEjecutora=Ext.extend(Phx.gridInterfaz,{
 	btest:false,
 	constructor:function(config){
 		this.maestro=config.maestro;
+
+        this.tbarItems = ['-',
+            this.cmbGestion,'-'
+        ];
     	//llama al constructor de la clase padre
 		Phx.vista.UnidadEjecutora.superclass.constructor.call(this,config);
         this.addButton('clonarUnidadEjecutora',
@@ -31,11 +35,71 @@ Phx.vista.UnidadEjecutora=Ext.extend(Phx.gridInterfaz,{
                 tooltip: '<b>Clonar</b><br/>Clonar Unidad Ejecutora.'
             }
         );
+
+        Ext.Ajax.request({
+            url:'../../sis_reclamo/control/Reclamo/getDatosOficina',
+            params:{id_usuario:0},
+            success:function(resp){
+                var reg =  Ext.decode(Ext.util.Format.trim(resp.responseText));
+
+                this.cmbGestion.setValue(reg.ROOT.datos.id_gestion);
+                this.cmbGestion.setRawValue(reg.ROOT.datos.gestion);
+
+                this.store.baseParams.id_gestion = reg.ROOT.datos.id_gestion;
+                this.load({params:{start:0, limit:this.tam_pag}});
+
+            },
+            failure: this.conexionFailure,
+            timeout:this.timeout,
+            scope:this
+        });
 		this.init();
+
+        this.cmbGestion.on('select',this.capturarEventos, this);
 		this.desc_gestion = '';
 		this.iniciarEventos();
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
+
+    capturarEventos: function () {
+        this.store.baseParams.id_gestion=this.cmbGestion.getValue();
+        this.load({params:{start:0, limit:this.tam_pag}});
+    },
+
+    cmbGestion: new Ext.form.ComboBox({
+        name: 'gestion',
+        id: 'gestion_ue',
+        fieldLabel: 'Gestion',
+        allowBlank: true,
+        emptyText:'Gestion...',
+        blankText: 'Año',
+        editable: false,
+        store:new Ext.data.JsonStore(
+            {
+                url: '../../sis_parametros/control/Gestion/listarGestion',
+                id: 'id_gestion',
+                root: 'datos',
+                sortInfo:{
+                    field: 'gestion',
+                    direction: 'DESC'
+                },
+                totalProperty: 'total',
+                fields: ['id_gestion','gestion'],
+                // turn on remote sorting
+                remoteSort: true,
+                baseParams:{par_filtro:'gestion'}
+            }),
+        valueField: 'id_gestion',
+        triggerAction: 'all',
+        displayField: 'gestion',
+        hiddenName: 'id_gestion',
+        mode:'remote',
+        pageSize:50,
+        queryDelay:500,
+        listWidth:'280',
+        hidden:false,
+        width:80
+    }),
 
     clonarUnidadEjecutora: function () {
 

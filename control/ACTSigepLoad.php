@@ -1,13 +1,13 @@
 <?php
 /**
- *@package pXP
- *@file gen-ACTSigepAdqDet.php
- *@author  (rzabala)
- *@date 25-03-2019 15:50:47
+ *@package  pXP
+ *@file     ACTSigepLoad.php
+ *@author   (franklin.espinoza)
+ *@date     16-12-2021 15:50:47
  *@description Clase que recibe los parametros enviados por la vista para mandar a la capa de Modelo
  */
 
-class ACTSigepAdqDet extends ACTbase{
+class ACTSigepLoad extends ACTbase{
 
     function listarSigepAdqDet(){
         $this->objParam->defecto('ordenacion','id_sigep_adq_det');
@@ -60,11 +60,6 @@ class ACTSigepAdqDet extends ACTbase{
     function cargarSigepCip(){
         $this->objFunc=$this->create('MODSigepAdqDet');
         $this->res=$this->objFunc->cargarSigepCip($this->objParam);
-        $this->res->imprimirRespuesta($this->res->generarJson());
-    }
-    function cargarSigepPlani(){//var_dump('cargarSigepContDet');
-        $this->objFunc=$this->create('MODSigepAdqDet');
-        $this->res=$this->objFunc->cargarSigepPlani($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
     function cargarSigepReguDet(){//var_dump('cargarSigepContDet');
@@ -125,19 +120,19 @@ class ACTSigepAdqDet extends ACTbase{
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
 
-    //{develop:franklin.espinoza date:16/06/2021}
-    function cargarEntregaReversionSigepCIP(){
-        $this->objFunc=$this->create('MODSigepAdqDet');
-        $this->res=$this->objFunc->cargarEntregaReversionSigepCIP($this->objParam);
+    /*********************************** {develop:franklin.espinoza date:15/09/2021} ***********************************/
+    function cargarConFlujoC21(){
+        $this->objFunc=$this->create('MODSigepLoad');
+        $this->res=$this->objFunc->cargarConFlujoC21($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
+    /*********************************** {develop:franklin.espinoza date:15/09/2021} ***********************************/
 
-    //{develop:franklin.espinoza date:14/01/2022}
-    function cargarEntregaSigepPVRCIP(){
+    //{develop:franklin.espinoza date:16/12/2021}
+    function loadReversionConFlujoC21(){
         $this->objFunc=$this->create('MODSigepAdqDet');
-        $this->res=$this->objFunc->cargarEntregaSigepPVRCIP($this->objParam);
+        $this->res=$this->objFunc->loadReversionConFlujoC21($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
 }
-
 ?>

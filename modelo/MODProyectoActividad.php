@@ -120,7 +120,7 @@ class MODProyectoActividad extends MODbase{
 	}
 
     /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
-    function clonarProyectoActividad(){
+    /*function clonarProyectoActividad(){
         //Definicion de variables para ejecucion del procedimiento
         $this->procedimiento='sigep.ft_proyecto_actividad_ime';
         $this->transaccion='PRE_CLO_PRO_ACT_IME';
@@ -128,6 +128,26 @@ class MODProyectoActividad extends MODbase{
 
         //Define los parametros para la funcion
         $this->setParametro('id_proyecto_actividad','id_proyecto_actividad','int4');
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }*/
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
+
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
+    function clonarProyectoActividad(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_proyecto_actividad_ime';
+        $this->transaccion='PRE_CLO_PRO_ACT_IME';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_gestion','id_gestion','int4');
+        $this->setParametro('gestion','gestion','int4');
 
         //Ejecuta la instruccion
         $this->armarConsulta();

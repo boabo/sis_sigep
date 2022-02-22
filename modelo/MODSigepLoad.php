@@ -1,13 +1,13 @@
 <?php
 /**
- *@package pXP
- *@file gen-MODSigepAdqDet.php
- *@author  (rzabala)
- *@date 25-03-2019 15:50:47
+ *@package  BoA
+ *@file     MODSigepLoad.php
+ *@author  (franklin.espinoza)
+ *@date     16-01-2022 15:50:47
  *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
  */
 
-class MODSigepAdqDet extends MODbase{
+class MODSigepLoad extends MODbase{
 
     function __construct(CTParametro $pParam){
         parent::__construct($pParam);
@@ -59,11 +59,8 @@ class MODSigepAdqDet extends MODbase{
         $this->captura('sisin','varchar');
         $this->captura('otfin','varchar');
         $this->captura('usuario_firm','varchar');
-
-        $this->captura('nro_deposito','varchar');
-        $this->captura('fecha_deposito','date');
-        $this->captura('monto_deposito','numeric');
-        $this->captura('total_deposito','numeric');
+        $this->captura('id_rubro','integer');
+        $this->captura('id_ent_otorgante','integer');
 
 
         //Ejecuta la instruccion
@@ -476,11 +473,35 @@ class MODSigepAdqDet extends MODbase{
         return $this->respuesta;
     }
 
-    //{develop:franklin.espinoza date:16/06/2021}
-    function cargarEntregaReversionSigepCIP(){
+
+    /*********************************** {develop:franklin.espinoza date:15/09/2021} ***********************************/
+    function cargarConFlujoC21(){
         //Definicion de variables para ejecucion del procedimiento
-        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
-        $this->transaccion='SIGEP_REV_C31_NORMAL';
+        $this->procedimiento='sigep.ft_erp_sigep_data_ime';
+        $this->transaccion='SIGEP_CON_FLUJO_C21';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+        $this->setParametro('momento','momento','varchar');
+        $this->setParametro('localidad','localidad','varchar');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta(); //print_r($this->consulta);exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        //var_dump($this->respuesta);
+        return $this->respuesta;
+    }
+    /*********************************** {develop:franklin.espinoza date:15/09/2021} ***********************************/
+
+    //{develop:franklin.espinoza date:16/12/2021}
+    function loadReversionConFlujoC21(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_erp_sigep_data_ime';
+        $this->transaccion='SIGEP_REV_CMF_C21';
         $this->tipo_procedimiento='IME';
 
         //Define los parametros para la funcion
@@ -497,29 +518,5 @@ class MODSigepAdqDet extends MODbase{
         //var_dump($this->respuesta);
         return $this->respuesta;
     }
-
-    //{develop:franklin.espinoza date:15/10/2020}
-    function cargarEntregaSigepPVRCIP(){
-        //Definicion de variables para ejecucion del procedimiento
-        $this->procedimiento='sigep.ft_sigep_adq_det_ime';
-        $this->transaccion='DOC_C31_REF_VIA';
-        $this->tipo_procedimiento='IME';
-
-        //Define los parametros para la funcion
-        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
-        $this->setParametro('momento','momento','varchar');
-        $this->setParametro('sigep_adq','sigep_adq','varchar');
-        $this->setParametro('localidad','localidad','varchar');
-        
-        //Ejecuta la instruccion
-        $this->armarConsulta();
-        $this->ejecutarConsulta();
-
-        //Devuelve la respuesta
-        //var_dump($this->respuesta);
-        return $this->respuesta;
-    }
-
-
 }
 ?>

@@ -31,6 +31,11 @@ DECLARE
 	v_mensaje_error         text;
 	v_id_cuenta_contable	integer;
 
+    v_cuenta_contable		record;
+	v_id_cuenta 			integer;
+    v_id_gestion			integer;
+    v_contador_reg			integer;
+
 BEGIN
 
     v_nombre_funcion = 'sigep.ft_cuenta_contable_ime';
@@ -145,6 +150,76 @@ BEGIN
 
 		end;
 
+    /*********************************
+ 	#TRANSACCION:  'SIGEP_CLONAR_CUE_CON'
+ 	#DESCRIPCION:	Clonar registros Cuenta Contable
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		10-01-2022 13:18:08
+	***********************************/
+
+	elsif(p_transaccion='SIGEP_CLONAR_CUE_CON')then
+
+		begin
+
+        	select count(cc.id_cuenta_contable)
+            into v_contador_reg
+            from sigep.tcuenta_contable cc
+            where cc.id_gestion = v_parametros.id_gestion;
+
+            if v_contador_reg > 0 then
+
+              select ges.id_gestion
+              into v_id_gestion
+              from param.tgestion ges
+              where ges.gestion = v_parametros.gestion+1;
+              --Sentencia de la eliminacion
+              for v_cuenta_contable in select cc.modelo_contable, cc.cuenta_contable, cc.des_cuenta_contable, cc.imputable, cc.id_cuenta, cc.id_gestion
+              						   from sigep.tcuenta_contable cc
+                                       where cc.id_gestion = v_parametros.id_gestion
+                                       order by cc.cuenta_contable asc loop
+
+                  select tcu.id_cuenta_dos
+                  into v_id_cuenta
+                  from conta.tcuenta_ids tcu
+                  where tcu.id_cuenta_uno = v_cuenta_contable.id_cuenta;
+
+                  --raise 'v_id_gestion %, %, %, %', v_id_gestion, v_id_partida, v_parametros.gestion, v_parametros.id_gestion;
+
+                  insert into sigep.tcuenta_contable (
+                      modelo_contable,
+                      cuenta_contable,
+                      des_cuenta_contable,
+                      imputable,
+                      id_cuenta,
+                      id_gestion,
+                      id_usuario_reg,
+                      fecha_reg
+                  ) values (
+                      v_cuenta_contable.modelo_contable,
+                      v_cuenta_contable.cuenta_contable,
+                      v_cuenta_contable.des_cuenta_contable,
+                      v_cuenta_contable.imputable,
+                      v_id_cuenta,
+                      v_id_gestion,
+                      p_id_usuario,
+                      now()
+                  );
+
+              end loop;
+
+              --Definicion de la respuesta
+              v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Registros de Cuenta Contable clonados exitosamente de la gestión '||v_parametros.gestion::varchar||' a la gestión '||(v_parametros.gestion+1)::varchar)||'.';
+              v_resp = pxp.f_agrega_clave(v_resp,'gestion',(v_parametros.gestion+1)::varchar);
+            else
+            	raise 'Estimado Funcionario, No existe registros en la gestion que pretende Clonar.';
+                v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Error al clonar Cuenta Contable de la gestión '||v_parametros.gestion::varchar||' a la gestión '||(v_parametros.gestion+1)::varchar)||'.';
+            end if;
+
+            --Devuelve la respuesta
+            return v_resp;
+
+		end;
+
 	else
 
     	raise exception 'Transaccion inexistente: %',p_transaccion;
@@ -167,3 +242,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION sigep.ft_cuenta_contable_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

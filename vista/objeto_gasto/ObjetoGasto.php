@@ -18,14 +18,143 @@ Phx.vista.ObjetoGasto=Ext.extend(Phx.gridInterfaz,{
 	constructor:function(config){
 		this.maestro=config.maestro;
 		this.desc_gestion = '';
+
+        this.tbarItems = ['-',
+            this.cmbGestion,'-'
+        ];
 		this.nuevo = false;
+
+        Ext.Ajax.request({
+            url:'../../sis_parametros/control/Gestion/obtenerGestionByFecha',
+            params:{fecha:new Date()},
+            success:function (resp) {
+                var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+                if(!reg.ROOT.error){
+                    this.cmbGestion.setValue(reg.ROOT.datos.id_gestion);
+                    this.cmbGestion.setRawValue(reg.ROOT.datos.anho);
+                    this.store.baseParams.id_gestion = reg.ROOT.datos.id_gestion;
+                    this.load({params:{start:0, limit:this.tam_pag}});
+                }else{
+                    alert('Ocurrio un error al obtener la Gestión')
+                }
+            },
+            failure: this.conexionFailure,
+            timeout:this.timeout,
+            scope:this
+        });
+
     	//llama al constructor de la clase padre
 		Phx.vista.ObjetoGasto.superclass.constructor.call(this,config);
 		this.init();
 		this.iniciarEventos();
-		this.load({params:{start:0, limit:this.tam_pag}});
 
+        this.addButton('btnClonObjGas',{
+            grupo:[0],
+            text: 'Clonar Objeto Gasto',
+            iconCls: 'bchecklist',
+            disabled: false,
+            handler: this.onClonarObjetoGasto,
+            tooltip: '<b>Clonar Objeto Gasto </b><br/>Clonar Objeto Gasto para la siguiente gestión'
+        });
+
+        this.cmbGestion.on('select',this.capturarEventos, this);
+		this.load({params:{start:0, limit:this.tam_pag}});
 	},
+
+    capturarEventos: function () {
+        this.store.baseParams.id_gestion=this.cmbGestion.getValue();
+        this.load({params:{start:0, limit:this.tam_pag}});
+    },
+
+    onClonarObjetoGasto : function(){
+
+        Ext.Msg.show({
+            title: 'Objeto de Gasto',
+            msg: '<b style="color: red;">Esta seguro de Clonar Objeto de Gasto de la Gestión '+this.cmbGestion.getRawValue()+' a la Gestión '+(+this.cmbGestion.getRawValue()+1)+'.</b>',
+            fn: function (btn){
+                if(btn == 'ok'){
+
+                    Phx.CP.loadingShow();
+                    let record = this.getSelectedData();
+
+                    Ext.Ajax.request({
+                        url:'../../sis_sigep/control/ObjetoGasto/clonarObjetoGasto',
+                        params:{
+                            id_gestion : this.cmbGestion.getValue(),
+                            gestion    : this.cmbGestion.getRawValue()
+                        },
+                        success: function (resp) {
+                            var reg =  Ext.decode(Ext.util.Format.trim(resp.responseText));
+                            var datos = reg.ROOT.datos;
+                            Phx.CP.loadingHide();
+                            console.log('datos fuera',datos);
+                            if(!reg.ROOT.error){
+                                console.log('datos',datos);
+                                Ext.Msg.show({
+                                    title: 'Estado SIGEP',
+                                    msg: '<b>Estimado Funcionario: '+'\n'+'Los registros de Objeto de Gasto se Clonaron satisfactoriamente en el ERP.</b>',
+                                    buttons: Ext.Msg.OK,
+                                    width: 512,
+                                    icon: Ext.Msg.INFO
+                                });
+                            }else{
+                                Ext.Msg.show({
+                                    title: 'Estado SIGEP',
+                                    msg: '<b>Estimado Funcionario: '+'\n'+'Hubo algunos inconvenientes al Clonar los registros de Objeto de Gasto</b>',
+                                    buttons: Ext.Msg.OK,
+                                    width: 512,
+                                    icon: Ext.Msg.INFO
+                                });
+                            }
+                        },
+                        failure: this.conexionFailure,
+                        timeout: this.timeout,
+                        scope:this
+                    });
+                }
+            },
+            buttons: Ext.Msg.OKCANCEL,
+            width: 350,
+            maxWidth:500,
+            icon: Ext.Msg.WARNING,
+            scope:this
+        });
+    },
+
+    cmbGestion: new Ext.form.ComboBox({
+        name: 'gestion',
+        id: 'gestion_og',
+        fieldLabel: 'Gestion',
+        allowBlank: true,
+        emptyText:'Gestion...',
+        blankText: 'Año',
+        editable: false,
+        store:new Ext.data.JsonStore(
+            {
+                url: '../../sis_parametros/control/Gestion/listarGestion',
+                id: 'id_gestion',
+                root: 'datos',
+                sortInfo:{
+                    field: 'gestion',
+                    direction: 'DESC'
+                },
+                totalProperty: 'total',
+                fields: ['id_gestion','gestion'],
+                // turn on remote sorting
+                remoteSort: true,
+                baseParams:{par_filtro:'gestion'}
+            }),
+        valueField: 'id_gestion',
+        triggerAction: 'all',
+        displayField: 'gestion',
+        hiddenName: 'id_gestion',
+        mode:'remote',
+        pageSize:50,
+        queryDelay:500,
+        listWidth:'280',
+        hidden:false,
+        width:80
+    }),
 
 	iniciarEventos: function () {
 

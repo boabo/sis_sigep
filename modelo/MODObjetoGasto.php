@@ -111,6 +111,24 @@ class MODObjetoGasto extends MODbase{
 		//Devuelve la respuesta
 		return $this->respuesta;
 	}
+
+    function clonarObjetoGasto(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='sigep.ft_objeto_gasto_ime';
+        $this->transaccion='SIGEP_CLONAR_OBJ_GAS';
+        $this->tipo_procedimiento='IME';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_gestion','id_gestion','int4');
+        $this->setParametro('gestion','gestion','int4');
+
+        //Ejecuta la instruccion
+        $this->armarConsulta(); //echo $this->consulta; exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }
 			
 }
 ?>

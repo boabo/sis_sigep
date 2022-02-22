@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION sigep.ft_sigep_adq_sel (
+CREATE OR REPLACE FUNCTION sigep.ft_sigep_action_sel (
   p_administrador integer,
   p_id_usuario integer,
   p_tabla varchar,
@@ -8,7 +8,7 @@ RETURNS varchar AS
 $body$
 /**************************************************************************
  SISTEMA:		Integracion SIGEP
- FUNCION: 		sigep.ft_sigep_adq_sel
+ FUNCION: 		sigep.ft_sigep_action_sel
  DESCRIPCION:   Funcion que devuelve conjuntos de registros de las consultas relacionadas con la tabla 'sigep.tsigep_adq'
  AUTOR: 		 (rzabala)
  FECHA:	        15-03-2019 21:10:26
@@ -30,7 +30,7 @@ DECLARE
 
 BEGIN
 
-	v_nombre_funcion = 'sigep.ft_sigep_adq_sel';
+	v_nombre_funcion = 'sigep.ft_sigep_action_sel';
     v_parametros = pxp.f_get_record(p_tabla);
 
 	/*********************************
@@ -257,6 +257,79 @@ BEGIN
 
 		end;
 
+    /*********************************
+ 	#TRANSACCION:  'C21_GET_PARAMS'
+ 	#DESCRIPCION:	Consulta para datos de envio al Sigep
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		04-01-2022 10:10:26
+	***********************************/
+
+	elsif(p_transaccion='C21_GET_PARAMS')then
+
+		begin
+			--Sentencia de la consulta
+
+            v_consulta:='SELECT
+            		  sdet.id_sigep_adq,
+                      sdet.gestion,
+                      sdet.clase_gasto_cip,
+                      sdet.moneda,
+                      sdet.total_autorizado_mo,
+                      sdet.id_ptorec,
+                      sdet.monto_partida,
+                      sdet.nro_doc_rdo,
+                      sdet.sec_doc_rdo,
+                      sdet.tipo_doc_rdo,
+                      sdet.fecha_elaboracion,
+                      sdet.justificacion,
+                      sdet.id_fuente,
+                      sdet.id_organismo,
+                      usu1.cuenta,
+                      sdet.beneficiario,
+                      sdet.banco_benef,
+                      sdet.cuenta_benef,
+                      sdet.banco_origen,
+                      sdet.cta_origen,
+                      sdet.libreta_origen,
+                      sdet.usuario_apro,
+                      sig.clase_gasto,
+                      sig.momento,
+                      sig.nro_preventivo,
+                      sig.nro_comprometido,
+        			  sig.nro_devengado,
+                      sdet.monto_benef,
+                      sdet.liquido_pagable,
+                      sdet.multa as multa_mo,
+                      sdet.retencion as retencion_mo,
+                      sdet.cuenta_contable,
+                      sdet.sisin,
+                      sdet.otfin,
+                      sdet.usuario_firm,
+                      sdet.cod_multa,
+                      sdet.cod_retencion,
+                      sdet.total_retencion,
+                      sdet.mes_rdo,
+                      sdet.tipo_rdo,
+                      sdet.tipo_contrato,
+                      sdet.fecha_tipo_cambio,
+                      sdet.nro_preventivo as preventivo_sigep,
+                      sdet.id_rubro,
+                      sdet.id_ent_otorgante
+              FROM sigep.tsigep_adq_det sdet
+              inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
+              left join segu.tusuario usu2 on usu2.id_usuario = sdet.id_usuario_mod
+              inner join sigep.tsigep_adq sig on sig.id_sigep_adq = sdet.id_sigep_adq
+              WHERE sdet.id_sigep_adq = '||v_parametros.id_sigep_adq;
+
+			--Definicion de la respuesta
+            v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
+			--v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+              --raise notice 'consulta: %', v_consulta;
+            --Devuelve la respuesta
+            return v_consulta;
+
+		end;
+
 	else
 
 		raise exception 'Transaccion inexistente';
@@ -279,5 +352,5 @@ CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
 
-ALTER FUNCTION sigep.ft_sigep_adq_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+ALTER FUNCTION sigep.ft_sigep_action_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
   OWNER TO postgres;

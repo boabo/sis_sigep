@@ -19,6 +19,29 @@ Phx.vista.FuenteFinanciamiento=Ext.extend(Phx.gridInterfaz,{
 	constructor:function(config){
 		this.maestro=config.maestro;
 		this.desc_gestion = '';
+
+        this.tbarItems = ['-',
+            this.cmbGestion,'-'
+        ];
+
+        Ext.Ajax.request({
+            url:'../../sis_parametros/control/Gestion/obtenerGestionByFecha',
+            params:{fecha:new Date()},
+            success:function (resp) {
+                var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+                if(!reg.ROOT.error){
+                    this.cmbGestion.setValue(reg.ROOT.datos.id_gestion);
+                    this.cmbGestion.setRawValue(reg.ROOT.datos.anho);
+                    this.store.baseParams.id_gestion = reg.ROOT.datos.id_gestion;
+                    this.load({params:{start:0, limit:this.tam_pag}});
+                }else{
+                    alert('Ocurrio un error al obtener la Gestión')
+                }
+            },
+            failure: this.conexionFailure,
+            timeout:this.timeout,
+            scope:this
+        });
     	//llama al constructor de la clase padre
 		Phx.vista.FuenteFinanciamiento.superclass.constructor.call(this,config);
         this.addButton('clonarFuenteFinanciamiento',
@@ -33,8 +56,49 @@ Phx.vista.FuenteFinanciamiento=Ext.extend(Phx.gridInterfaz,{
         );
 		this.init();
 		this.iniciarEventos();
+        this.cmbGestion.on('select',this.capturarEventos, this);
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
+
+    capturarEventos: function () {
+        this.store.baseParams.id_gestion=this.cmbGestion.getValue();
+        this.load({params:{start:0, limit:this.tam_pag}});
+    },
+
+    cmbGestion: new Ext.form.ComboBox({
+        name: 'gestion',
+        id: 'gestion_ff',
+        fieldLabel: 'Gestion',
+        allowBlank: true,
+        emptyText:'Gestion...',
+        blankText: 'Año',
+        editable: false,
+        store:new Ext.data.JsonStore(
+            {
+                url: '../../sis_parametros/control/Gestion/listarGestion',
+                id: 'id_gestion',
+                root: 'datos',
+                sortInfo:{
+                    field: 'gestion',
+                    direction: 'DESC'
+                },
+                totalProperty: 'total',
+                fields: ['id_gestion','gestion'],
+                // turn on remote sorting
+                remoteSort: true,
+                baseParams:{par_filtro:'gestion'}
+            }),
+        valueField: 'id_gestion',
+        triggerAction: 'all',
+        displayField: 'gestion',
+        hiddenName: 'id_gestion',
+        mode:'remote',
+        pageSize:50,
+        queryDelay:500,
+        listWidth:'280',
+        hidden:false,
+        width:80
+    }),
 
     clonarFuenteFinanciamiento: function () {
 

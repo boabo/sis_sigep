@@ -34,6 +34,10 @@ DECLARE
     v_id_categoria_dos		integer;
 
     v_registros				record;
+    v_proyecto_actividad	record;
+    v_id_categoria_uno		integer;
+
+    v_contador_reg			integer;
 
 BEGIN
 
@@ -257,6 +261,85 @@ BEGIN
             return v_resp;
 
 		end;
+    /*********************************
+ 	#TRANSACCION:  'SIGEP_CLONAR_PRO_ACT'
+ 	#DESCRIPCION:	Clonar registros Objeto de Gasto
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		10-01-2022 13:18:08
+	***********************************/
+
+	elsif(p_transaccion='SIGEP_CLONAR_PRO_ACT')then
+
+		begin
+
+        	select count(pa.id_proyecto_actividad)
+            into v_contador_reg
+            from sigep.tproyecto_actividad pa
+            where pa.id_gestion = v_parametros.id_gestion;
+
+            if v_contador_reg > 0 then
+
+              select ges.id_gestion
+              into v_id_gestion
+              from param.tgestion ges
+              where ges.gestion = v_parametros.gestion+1;
+              --Sentencia de la eliminacion
+              for v_proyecto_actividad in select pa.id_catprg, pa.id_entidad, pa.programa, pa.proyecto, pa.actividad, pa.desc_catprg, pa.nivel, pa.id_programa, pa.id_categoria_programatica
+                                    from sigep.tproyecto_actividad pa
+                                    where pa.id_gestion = v_parametros.id_gestion
+                                    order by pa.programa asc loop
+
+                  select tcp.id_categoria_programatica_dos
+                  into v_id_categoria_dos
+                  from pre.tcategoria_programatica_ids tcp
+                  where tcp.id_categoria_programatica_uno = v_proyecto_actividad.id_categoria_programatica;
+
+                  --raise 'v_id_gestion %, %, %, %', v_id_gestion, v_id_partida, v_parametros.gestion, v_parametros.id_gestion;
+
+                  insert into sigep.tproyecto_actividad (
+                      id_catprg,
+                      id_entidad,
+                      programa,
+                      proyecto,
+                      actividad,
+                      desc_catprg,
+                      nivel,
+                      id_programa,
+
+                      id_categoria_programatica,
+                      id_gestion,
+                      id_usuario_reg,
+                      fecha_reg
+                  ) values (
+                      v_proyecto_actividad.id_catprg,
+                      v_proyecto_actividad.id_entidad,
+                      v_proyecto_actividad.programa,
+                      v_proyecto_actividad.proyecto,
+                      v_proyecto_actividad.actividad,
+                      v_proyecto_actividad.desc_catprg,
+                      v_proyecto_actividad.nivel,
+                      v_proyecto_actividad.id_programa,
+
+					  v_id_categoria_dos,
+					  v_id_gestion,
+                      p_id_usuario,
+                      now()
+                  );
+
+              end loop;
+
+              --Definicion de la respuesta
+              v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Registros de Proyecto Actividad clonados exitosamente de la gestión '||v_parametros.gestion::varchar||' a la gestión '||(v_parametros.gestion+1)::varchar)||'.';
+              v_resp = pxp.f_agrega_clave(v_resp,'gestion',(v_parametros.gestion+1)::varchar);
+            else
+            	raise 'Estimado Funcionario, No existe registros en la gestion que pretende Clonar.';
+                v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Error al clonar Proyecto Actividad de la gestión '||v_parametros.gestion::varchar||' a la gestión '||(v_parametros.gestion+1)::varchar)||'.';
+            end if;
+
+            --Devuelve la respuesta
+            return v_resp;
+
+		end;
 
 	else
 
@@ -280,3 +363,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION sigep.ft_proyecto_actividad_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

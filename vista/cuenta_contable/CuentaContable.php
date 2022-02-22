@@ -17,12 +17,141 @@ Phx.vista.CuentaContable=Ext.extend(Phx.gridInterfaz,{
 	constructor:function(config){
 		this.maestro=config.maestro;
 		this.desc_gestion = '';
+
+        this.tbarItems = ['-',
+            this.cmbGestion,'-'
+        ];
     	//llama al constructor de la clase padre
 		Phx.vista.CuentaContable.superclass.constructor.call(this,config);
 		this.init();
 		this.iniciarEventos();
+
+        Ext.Ajax.request({
+            url:'../../sis_reclamo/control/Reclamo/getDatosOficina',
+            params:{id_usuario:0},
+            success:function(resp){
+                var reg =  Ext.decode(Ext.util.Format.trim(resp.responseText));
+
+                this.cmbGestion.setValue(reg.ROOT.datos.id_gestion);
+                this.cmbGestion.setRawValue(reg.ROOT.datos.gestion);
+
+                this.store.baseParams.id_gestion = reg.ROOT.datos.id_gestion;
+                this.load({params:{start:0, limit:this.tam_pag}});
+
+            },
+            failure: this.conexionFailure,
+            timeout:this.timeout,
+            scope:this
+        });
+
+        this.addButton('btnClonCueCon',{
+            grupo:[0],
+            text: 'Clonar Cuenta Contable',
+            iconCls: 'bchecklist',
+            disabled: false,
+            handler: this.onClonarCuentaContable,
+            tooltip: '<b>Clonar Cuenta Contable </b><br/>Clonar Cuenta Contable para la siguiente gestión'
+        });
+
+        this.cmbGestion.on('select',this.capturarEventos, this);
+
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
+
+    capturarEventos: function () {
+        this.store.baseParams.id_gestion=this.cmbGestion.getValue();
+        this.load({params:{start:0, limit:this.tam_pag}});
+    },
+
+    onClonarCuentaContable : function(){
+
+        Ext.Msg.show({
+            title: 'Cuenta Contable',
+            msg: '<b style="color: red;">Esta seguro de Clonar Cuenta Contable de la Gestión '+this.cmbGestion.getRawValue()+' a la Gestión '+(+this.cmbGestion.getRawValue()+1)+'.</b>',
+            fn: function (btn){
+                if(btn == 'ok'){
+
+                    Phx.CP.loadingShow();
+                    let record = this.getSelectedData();
+
+                    Ext.Ajax.request({
+                        url:'../../sis_sigep/control/CuentaContable/clonarCuentaContable',
+                        params:{
+                            id_gestion : this.cmbGestion.getValue(),
+                            gestion    : this.cmbGestion.getRawValue()
+                        },
+                        success: function (resp) {
+                            var reg =  Ext.decode(Ext.util.Format.trim(resp.responseText));
+                            var datos = reg.ROOT.datos;
+                            Phx.CP.loadingHide();
+                            console.log('datos fuera',datos);
+                            if(!reg.ROOT.error){
+                                console.log('datos',datos);
+                                Ext.Msg.show({
+                                    title: 'Estado SIGEP',
+                                    msg: '<b>Estimado Funcionario: '+'\n'+'Los registros de Cuenta Contable se Clonaron satisfactoriamente en el ERP.</b>',
+                                    buttons: Ext.Msg.OK,
+                                    width: 512,
+                                    icon: Ext.Msg.INFO
+                                });
+                            }else{
+                                Ext.Msg.show({
+                                    title: 'Estado SIGEP',
+                                    msg: '<b>Estimado Funcionario: '+'\n'+'Hubo algunos inconvenientes al Clonar los registros de Cuenta Contable.</b>',
+                                    buttons: Ext.Msg.OK,
+                                    width: 512,
+                                    icon: Ext.Msg.INFO
+                                });
+                            }
+                        },
+                        failure: this.conexionFailure,
+                        timeout: this.timeout,
+                        scope:this
+                    });
+                }
+            },
+            buttons: Ext.Msg.OKCANCEL,
+            width: 350,
+            maxWidth:500,
+            icon: Ext.Msg.WARNING,
+            scope:this
+        });
+    },
+
+    cmbGestion: new Ext.form.ComboBox({
+        name: 'gestion',
+        id: 'gestion_cc',
+        fieldLabel: 'Gestion',
+        allowBlank: true,
+        emptyText:'Gestion...',
+        blankText: 'Año',
+        editable: false,
+        store:new Ext.data.JsonStore(
+            {
+                url: '../../sis_parametros/control/Gestion/listarGestion',
+                id: 'id_gestion',
+                root: 'datos',
+                sortInfo:{
+                    field: 'gestion',
+                    direction: 'DESC'
+                },
+                totalProperty: 'total',
+                fields: ['id_gestion','gestion'],
+                // turn on remote sorting
+                remoteSort: true,
+                baseParams:{par_filtro:'gestion'}
+            }),
+        valueField: 'id_gestion',
+        triggerAction: 'all',
+        displayField: 'gestion',
+        hiddenName: 'id_gestion',
+        mode:'remote',
+        pageSize:50,
+        queryDelay:500,
+        listWidth:'280',
+        hidden:false,
+        width:80
+    }),
 
 	iniciarEventos: function () {
 

@@ -177,6 +177,12 @@ class MODSigepAdq extends MODbase{
         $this->captura('fecha_tipo_cambio','date');
         $this->captura('preventivo_sigep','integer');
 
+        $this->captura('nro_deposito','varchar');
+        $this->captura('fecha_deposito','date');
+        $this->captura('monto_deposito','numeric');
+        $this->captura('total_deposito','numeric');
+
+        $this->captura('beneficiarios','jsonb');
 
         $this->armarConsulta();//var_dump($this->consulta);exit;
         $this->ejecutarConsulta();
@@ -255,12 +261,16 @@ class MODSigepAdq extends MODbase{
     function registrarServiceERP($link, $list, $service_code, $estado_c31){
         //var_dump('registrarServiceERP',$this->objParam->getParametro('nro_preventivo'), $service_code);
 
+        $tipo_cbte = $this->objParam->getParametro ('tipo_cbte');
+        $service_codes = array('CON_IMPUTACION','SIN_IMPUTACION','CON_IMPUTACION_V','REGULARIZAC','REGULARIZAS','CON_IMPUTACION_EXT','REGULARIZAC_REV','REGULARIZAS_REV','CON_IMPUTACION_REV','DOC_C31_REF_VIA');
 
-        if ($service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION'  || $service_code == 'CON_IMPUTACION_V' || $service_code == 'REGULARIZAC'
-            || $service_code == 'REGULARIZAS' || $service_code == 'CON_IMPUTACION_EXT' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV') {
+        if ( in_array ($service_code, $service_codes) ){
+
+        /*if ($service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION'  || $service_code == 'CON_IMPUTACION_V' || $service_code == 'REGULARIZAC'
+            || $service_code == 'REGULARIZAS' || $service_code == 'CON_IMPUTACION_EXT' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV' || $service_code == 'CON_IMPUTACION_REV') {*/
+
             $service = json_decode($list, true);
-            //var_dump('ENTRA ', $service, $service_code);
-            foreach ($service as $servicio) {
+            foreach ($service as $servicio) { //var_dump('FOR EACH ', $servicio);exit;
                 //var_dump('ENTRA ', $servicio);
                 $fecha_new = str_replace('-', '/', $servicio["fecha_elaboracion"]);
                 $fecha_elaboracion = date("d/m/Y", strtotime($fecha_new));
@@ -301,14 +311,25 @@ class MODSigepAdq extends MODbase{
                 $total_retenciones = $servicio["total_retencion"];
                 $mesRdo = $servicio["mes_rdo"];
                 $tipoRdo = $servicio["tipo_rdo"];
+
+                if ($service_code == 'CON_IMPUTACION_REV'){
+                    $nro_deposito =  $servicio["nro_deposito"];
+                    $fecha_deposito = DateTime::createFromFormat('Y-m-d',$servicio["fecha_deposito"])->format('d/m/Y');
+                    $monto_deposito = $servicio["monto_deposito"];
+                    $total_deposito = $servicio["total_deposito"];
+                }
+                /*var_dump('campos', $servicio["nro_deposito"],DateTime::createFromFormat('Y-m-d',$servicio["fecha_deposito"])->format('d/m/Y'), $servicio["monto_deposito"], $servicio["total_deposito"]);
+                var_dump('campos', $nro_deposito,$fecha_deposito, $monto_deposito, $total_deposito);exit;*/
                 //franklin.espinoza 15/10/2020
-                if ($service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV') {
+                if ($service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV' || $service_code == 'CON_IMPUTACION_REV') {
                     $nro_preventivo = $servicio["nro_preventivo"];
                     $nro_compromiso = $servicio["nro_comprometido"];
                     $nro_devengado = $servicio["nro_devengado"];
                 }else{
                     $nro_preventivo = $servicio["preventivo_sigep"];
                 }
+
+                $beneficiarios = $servicio["beneficiarios"];
 
             }
             $stri = array();
@@ -372,7 +393,7 @@ class MODSigepAdq extends MODbase{
                 $otfin = null;
             }
 
-            if (!empty($cod_multa)) { //var_dump('A');
+            if (!empty($cod_multa)) {
                 $str = new stdClass();
                 $str->usuario = "" . $usuario . "";
                 $str->user_apro = "".$usuario_apro."";
@@ -400,7 +421,7 @@ class MODSigepAdq extends MODbase{
                 $json = json_encode($str);
                 $service_code = 'CON_IMPUTACION_M';
                 //var_dump("JSON de multa:", $cod_multa);exit;
-            } else if (!empty($cod_retencion)){ //var_dump('B');
+            } else if (!empty($cod_retencion)){
                 if($tipo_contrato == 'EVE'){
                     $reten = $array_destino;
                 }else{
@@ -429,33 +450,73 @@ class MODSigepAdq extends MODbase{
                 $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
                 $json = json_encode($str);
                 $service_code = 'PLANI';
-            } else {  //var_dump('C');
-                $str = new stdClass();
-                $str->usuario = "" . $usuario . "";
-                $str->user_apro = "".$usuario_apro."";
-                $str->user_firm = "".$usuario_firm."";
-                $str->gestion = $gestion;
-                $str->nroPreventivo = $nro_preventivo;
-                $str->fechaElaboracion = "" . $fecha_elaboracion . "";
-                $str->claseGastoCip = $clase_gasto_cip;
-                $str->idCatpry =$idCatproy;
-                $str->sigade = null;
-                $str->otfin = $otfin;
-                $str->resumenOperacion = "" . $resumen . "";
-                $str->moneda = $moneda;
-                $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
-                $str->compraVenta = "" . $tipo . "";
-                $str->totalAutorizadoMo = $total_autorizado;
-                $str->totalRetencionesMo = 0;
-                $str->totalMultasMo = 0;
-                $str->liquidoPagableMo = $liquido_pagable;
-                $str->partidas = $stri;
-                $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
-                $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => "" . $multa_mo . "");
-                $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
-                $json = json_encode($str);
-                //$service_code = 'CON_IMPUTACION';
-                $service_code = 'CON_IMPUTACION';
+            } else {
+
+                $tipos = array ('refrigerio','viatico_administrativo','viatico_operativo');
+
+                if ( in_array($tipo_cbte, $tipos) ){
+
+                    $str = new stdClass();
+                    $str->usuario = "" . $usuario . "";
+                    $str->user_apro = "".$usuario_apro."";
+                    $str->user_firm = "".$usuario_firm."";
+                    $str->gestion = $gestion;
+                    $str->nroPreventivo = $nro_preventivo;
+                    $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                    $str->claseGastoCip = $clase_gasto_cip;
+                    $str->idCatpry =$idCatproy;
+                    $str->sigade = null;
+                    $str->otfin = $otfin;
+                    $str->resumenOperacion = "" . $resumen . "";
+                    $str->moneda = $moneda;
+                    $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                    $str->compraVenta = "" . $tipo . "";
+                    $str->totalAutorizadoMo = $total_autorizado;
+                    $str->totalRetencionesMo = 0;
+                    $str->totalMultasMo = 0;
+                    $str->liquidoPagableMo = $liquido_pagable;
+                    $str->partidas = $stri;
+                    $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+
+                    /********************************* beneficiarios *********************************/
+                    $beneficiarios = json_decode($beneficiarios, true);
+                    $str->beneficiarios = array();
+                    foreach ($beneficiarios as $beneficiario){
+                        $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario['beneficiario'] . "", "banco" => "" . $beneficiario['banco'] . "", "cuenta" => "" . $beneficiario['cuenta'] . "", "montoMo" => "" . $beneficiario['montoMo'] . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => "" . $multa_mo . "");
+                    }
+                    /********************************* beneficiarios *********************************/
+
+                    $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                    $json = json_encode($str);
+                    $service_code = 'DOC_C31_REF_VIA';
+                }else {
+                    $str = new stdClass();
+                    $str->usuario = "" . $usuario . "";
+                    $str->user_apro = "" . $usuario_apro . "";
+                    $str->user_firm = "" . $usuario_firm . "";
+                    $str->gestion = $gestion;
+                    $str->nroPreventivo = $nro_preventivo;
+                    $str->fechaElaboracion = "" . $fecha_elaboracion . "";
+                    $str->claseGastoCip = $clase_gasto_cip;
+                    $str->idCatpry = $idCatproy;
+                    $str->sigade = null;
+                    $str->otfin = $otfin;
+                    $str->resumenOperacion = "" . $resumen . "";
+                    $str->moneda = $moneda;
+                    $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+                    $str->compraVenta = "" . $tipo . "";
+                    $str->totalAutorizadoMo = $total_autorizado;
+                    $str->totalRetencionesMo = 0;
+                    $str->totalMultasMo = 0;
+                    $str->liquidoPagableMo = $liquido_pagable;
+                    $str->partidas = $stri;
+                    $str->respaldos [] = array("tipoDocRdo" => "" . $tipo_doc_rdo . "", "nroDocRdo" => "" . $nro_doc_rdo . "", "secDocRdo" => "" . $sec_doc_rdo . "", "totalDocRdo" => "" . $sec_doc_rdo . "", "fechaElaboracionRdo" => "" . $fecha_elaboracion . "", "fechaRecepcionRdo" => "" . $fecha_elaboracion . "", "fechaVencimientoRdo" => "" . $fecha_elaboracion . "");
+                    $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => "" . $retencion_mo . "", "montoMultasMo" => "" . $multa_mo . "");
+                    $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                    $json = json_encode($str);
+                    //$service_code = 'CON_IMPUTACION';
+                    $service_code = 'CON_IMPUTACION';
+                }
             }
 
             /////////////////////PREVENTIVO/////////////////////
@@ -677,7 +738,46 @@ class MODSigepAdq extends MODbase{
 
             $service_code = 'CON_IMPUTACION_EXT';
 
-        }else if($momento == 'REGULARIZAC_REV'){
+        }else if($momento == 'CON_IMPUTACION_REV'){
+            if($moneda == '34'){
+                $tipo = 'C';
+            }else{
+                $tipo = 'V';
+            }
+
+            $str = new stdClass();
+            $str->usuario = "".$usuario."";
+            $str->user_apro = "".$usuario_apro."";
+            $str->user_firm = "".$usuario_firm."";
+            $str->gestion = $gestion;
+            $str->nroPreventivo = $nro_preventivo;
+            $str->nroCompromiso = $nro_compromiso;
+            $str->nroDevengado = $nro_devengado;
+            $str->regularizacion = "".'N'."";
+            $str->fechaElaboracion = "".$fecha_elaboracion."";
+            $str->claseGastoCip = $clase_gasto_cip;
+            $str->idCatprv = null;
+            $str->sigade = null;
+            $str->otfin = null;
+            $str->resumenOperacion = "".$resumen."";
+            $str->moneda = "".$moneda."";//
+            $str->fechaTipoCambio = "".$fecha_tipo_cambio."";//$fecha_elaboracion
+            $str->compraVenta = "".$tipo."";
+            $str->totalAutorizadoMo = $total_autorizado;
+            $str->totalRetencionesMo = 0;
+            $str->totalMultasMo = 0;
+            $str->liquidoPagableMo = $liquido_pagable;
+            $str->partidas = $stri;
+            $str->respaldos []= array("tipoDocRdo"=>"".$tipo_doc_rdo."", "nroDocRdo"=>"".$nro_doc_rdo."", "secDocRdo"=>"".$sec_doc_rdo."", "totalDocRdo"=>"".$sec_doc_rdo."", "fechaElaboracionRdo"=>"".$fecha_elaboracion."", "fechaRecepcionRdo"=>"".$fecha_elaboracion."", "fechaVencimientoRdo"=>"".$fecha_elaboracion."");
+            $str->beneficiarios [] = array("beneficiario" => "" . $beneficiario . "", "banco" => "" . $banco_benef . "", "cuenta" => "" . $cuenta_benef . "", "montoMo" => "" . $monto_benef . "", "montoRetencionesMo" => 0, "montoMultasMo" => 0);
+
+            $str->boletas []= array("nroDeposito"=>"".$nro_deposito."", "fecha"=>"".$fecha_deposito."", "importeExtbanMo"=>"".$monto_deposito."", "montoMo"=>"".$total_deposito."", "banco"=>"".$banco_origen."", "cuenta"=>"".$cuenta_origen."", "libreta"=>"".$libreta_origen."");
+
+            $str->libretas []= array("idFuente"=>"".$id_fuente."", "idOrganismo"=>"".$id_organismo."", "bancoOrigen"=>"".$banco_origen."", "cuentaOrigen"=>"".$cuenta_origen."", "libretaOrigen"=>"".$libreta_origen."");
+            $json = json_encode($str);
+            $service_code = 'CON_IMPUTACION_REV';
+
+        } else if($momento == 'REGULARIZAC_REV'){
             if($moneda == '34'){
                 $tipo = 'C';
             }else{
@@ -820,11 +920,15 @@ class MODSigepAdq extends MODbase{
 
 
         $result= json_decode($variable, true);
-
+        //var_dump('request', $variable);exit;
         $id_service_request=$result['ROOT']['datos']['id_service_request'];
-
+        //var_dump($json, $service_code, $id_service_request);exit;
         $str = new stdClass();
-        if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_M'|| $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code ==  'CON_IMPUTACION_EXT' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV'){
+
+        $service_codes = array('CON_IMPUTACION','CON_IMPUTACION_M','SIN_IMPUTACION','SIN_IMPUTACION_CP','CON_IMPUTACION_V','CON_IMPUTACION_EXT','REGULARIZAC_REV','REGULARIZAS_REV','CON_IMPUTACION_REV','DOC_C31_REF_VIA');
+
+        if ( in_array ($service_code, $service_codes) ){
+        /*if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_M'|| $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code ==  'CON_IMPUTACION_EXT' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV' || $service_code == 'CON_IMPUTACION_REV' || $service_code == 'DOC_C31_REF_VIA' ){*/
             $this->actualizaEstados('registrado', $id_service_request, '','', $id_adq); //actualizaEstados($estado, $dato, $preve, $mensaje, $valor)
             //var_dump('resultado registrado', $id_service_request);exit;
             $this->ProcesarC31($id_service_request, $id_adq, 25, $estado_c31);
@@ -902,7 +1006,7 @@ class MODSigepAdq extends MODbase{
                     "momento" => $momento
                 )
             );
-            $resul = json_decode($variable,true);//var_dump('VARIABLE ANTES: ',$resul['ROOT']['datos'], $variable);exit;
+            $resul = json_decode($variable,true);//var_dump('VARIABLE ANTES: ',$variable,$resul['ROOT']['datos'], $variable);exit;
             $str = new stdClass();
             $str->resultado = "" . $resul . "";
             $x ++;
@@ -985,14 +1089,14 @@ class MODSigepAdq extends MODbase{
                 $str->service_code = "" . $service_code . "";
 
                 $this->actualizaEstadosC('finalizado', $id_service_request, $nro_comprometido, $nro_devengado, $resp, $id_adq);
-            }elseif($service_code == 'CON_IMPUTACION_M' || $service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code == 'REGULARIZAC' || $service_code == 'REGULARIZAS' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV'){
+            }elseif($service_code == 'CON_IMPUTACION_M' || $service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code == 'REGULARIZAC' || $service_code == 'REGULARIZAS' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV' || $service_code == 'CON_IMPUTACION_REV'){
                 $id_sigep_adq = $this->objParam->getParametro('id_sigep_adq');
                 $nro_preventivo = $result['ROOT']['datos']['output']['nroPreventivo'];
                 $nro_comprometido = $result['ROOT']['datos']['output']['nroCompromiso'];
                 $nro_devengado = $result['ROOT']['datos']['output']['nroDevengado'];
 
                 /*begin franklin.espinoza 21/09/2020 update c31*/
-                if($service_code == 'CON_IMPUTACION') {
+                if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_REV') {
                     $nro_documento = $nro_preventivo.','.$nro_comprometido;
                 }
 
@@ -1000,7 +1104,7 @@ class MODSigepAdq extends MODbase{
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'CIP " . $nro_preventivo . "'
                             WHERE id_entrega = " . $id_entrega;
-                }else if($service_code == 'CON_IMPUTACION') {
+                }else if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_REV') {
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'CIP " . $nro_documento . "'
                             WHERE id_entrega = " . $id_entrega;

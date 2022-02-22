@@ -11,8 +11,12 @@ class ACTCuentaContable extends ACTbase{
 			
 	function listarCuentaContable(){
 		$this->objParam->defecto('ordenacion','id_cuenta_contable');
-
 		$this->objParam->defecto('dir_ordenacion','asc');
+
+        if ($this->objParam->getParametro('id_gestion') != '') {
+            $this->objParam->addFiltro("cue_cont.id_gestion = ". $this->objParam->getParametro('id_gestion'));
+        }
+
 		if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
 			$this->objReporte = new Reporte($this->objParam,$this);
 			$this->res = $this->objReporte->generarReporteListado('MODCuentaContable','listarCuentaContable');
@@ -39,6 +43,12 @@ class ACTCuentaContable extends ACTbase{
 		$this->res=$this->objFunc->eliminarCuentaContable($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    function clonarCuentaContable(){
+        $this->objFunc=$this->create('MODCuentaContable');
+        $this->res=$this->objFunc->clonarCuentaContable($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
 			
 }
 

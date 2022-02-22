@@ -163,11 +163,14 @@ class ACTSigepAdq extends ACTbase{
     /*{developer: franklin.espinoza, date:15/09/2020, description: "Elimina C31 Sistema Sigep"}*/
     function revertirProcesoSigep(){
 
-        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
+        $id_service_request = $this->objParam->getParametro('id_service_request');
+        $estado_reg = $this->objParam->getParametro('estado_reg');
+        $estado_destino = $this->objParam->getParametro('estado_destino');
 
+        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
         $request = $pxpRestClient->doPost('sigep/ServiceRequest/revertirProcesoSigep',
             array(
-                "id_service_request" => $this->objParam->getParametro('id_service_request')
+                "id_service_request" => $id_service_request
             )
         );
 
@@ -196,6 +199,18 @@ class ACTSigepAdq extends ACTbase{
             }
         }
 
+        if ( $estado_reg == 'elaborado' && $estado_destino == 'anterior') {
+            $cone = new conexion();
+            $link = $cone->conectarpdo();
+
+            $sql = "UPDATE  conta.tentrega SET
+                            c31 = null
+                            WHERE id_service_request = " . $id_service_request;
+
+            $stmt = $link->prepare($sql);
+            $stmt->execute();
+        }
+
         $this->res=new Mensaje();
         $this->res->setMensaje('EXITO','SigepAdq.php','Estados Servicios', 'Cambio de Estados de Servicios','control');
         $this->res->setDatos(array('process' => $process, 'sigep_data' => $response['ROOT']['datos'], 'mensaje'=>$process?'cambio exitoso de estados.':'cambio fallido de estados'));
@@ -206,16 +221,28 @@ class ACTSigepAdq extends ACTbase{
     /*{developer: franklin.espinoza, date:15/09/2020, description: "Cambia el estado para aprobaciones C31 Sistema Sigep"}*/
     function readyProcesoSigep(){
 
+        $cone = new conexion();
+        $link = $cone->conectarpdo();
+
+        $sql = "select tus.cuenta
+                from segu.tusuario tus
+                where tus.id_usuario = ".$_SESSION["ss_id_usuario"]."
+                ";
+        $consulta = $link->query($sql);
+        $consulta->execute();
+        $cuenta = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        $cuenta = $cuenta[0]['cuenta'];
+
         $estado_reg = $this->objParam->getParametro('estado_reg');//var_dump($estado_reg);
         $momento = $this->objParam->getParametro('momento');//var_dump($momento, $this->objParam->getParametro('direction'));exit;
-//var_dump('valores',$this->objParam->getParametro('id_service_request'),$this->objParam->getParametro('direction'),$estado_reg);exit;
-        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
 
+        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
         $request = $pxpRestClient->doPost('sigep/ServiceRequest/readyProcesoSigep',
             array(
                 "id_service_request" => $this->objParam->getParametro('id_service_request'),
                 "direction" => $this->objParam->getParametro('direction'),
-                "estado_reg" => $estado_reg
+                "estado_reg" => $estado_reg,
+                "cuenta" => $cuenta
             )
         );
 
@@ -238,7 +265,7 @@ class ACTSigepAdq extends ACTbase{
                         "id_service_request" => $this->objParam->getParametro('id_service_request')
                     )
                 );
-                $response = json_decode($request,true);
+                $response = json_decode($request,true);//var_dump('$request', $request);exit;
 
                 $next = json_decode($response['ROOT']['datos']['end_process']);
                 if( $next ){

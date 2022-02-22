@@ -10,9 +10,14 @@
 class ACTObjetoGasto extends ACTbase{    
 			
 	function listarObjetoGasto(){
-		$this->objParam->defecto('ordenacion','id_objeto_gasto');
 
+		$this->objParam->defecto('ordenacion','id_objeto_gasto');
 		$this->objParam->defecto('dir_ordenacion','asc');
+
+        if ($this->objParam->getParametro('id_gestion') != '') {
+            $this->objParam->addFiltro("obj_gas.id_gestion = ". $this->objParam->getParametro('id_gestion'));
+        }
+
 		if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
 			$this->objReporte = new Reporte($this->objParam,$this);
 			$this->res = $this->objReporte->generarReporteListado('MODObjetoGasto','listarObjetoGasto');
@@ -35,10 +40,16 @@ class ACTObjetoGasto extends ACTbase{
 	}
 						
 	function eliminarObjetoGasto(){
-			$this->objFunc=$this->create('MODObjetoGasto');	
+			$this->objFunc=$this->create('MODObjetoGasto');
 		$this->res=$this->objFunc->eliminarObjetoGasto($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    function clonarObjetoGasto(){
+        $this->objFunc=$this->create('MODObjetoGasto');
+        $this->res=$this->objFunc->clonarObjetoGasto($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
 			
 }
 

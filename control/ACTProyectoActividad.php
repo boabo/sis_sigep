@@ -11,8 +11,12 @@ class ACTProyectoActividad extends ACTbase{
 			
 	function listarProyectoActividad(){
 		$this->objParam->defecto('ordenacion','id_proyecto_actividad');
-
 		$this->objParam->defecto('dir_ordenacion','asc');
+
+        if ($this->objParam->getParametro('id_gestion') != '') {
+            $this->objParam->addFiltro("pro_act.id_gestion = ". $this->objParam->getParametro('id_gestion'));
+        }
+
 		if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
 			$this->objReporte = new Reporte($this->objParam,$this);
 			$this->res = $this->objReporte->generarReporteListado('MODProyectoActividad','listarProyectoActividad');
@@ -26,9 +30,9 @@ class ACTProyectoActividad extends ACTbase{
 				
 	function insertarProyectoActividad(){
 		$this->objFunc=$this->create('MODProyectoActividad');	
-		if($this->objParam->insertar('id_proyecto_actividad')){
+		if($this->objParam->insertar('id_proyecto_actividad')){ //var_dump('insertar');exit;
 			$this->res=$this->objFunc->insertarProyectoActividad($this->objParam);			
-		} else{			
+		} else{ //var_dump('modificar');exit;
 			$this->res=$this->objFunc->modificarProyectoActividad($this->objParam);
 		}
 		$this->res->imprimirRespuesta($this->res->generarJson());
@@ -41,12 +45,20 @@ class ACTProyectoActividad extends ACTbase{
 	}
 
     /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
+    /*function clonarProyectoActividad(){
+        $this->objFunc=$this->create('MODProyectoActividad');
+        $this->res=$this->objFunc->clonarProyectoActividad($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }*/
+    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
+
+    /**{developer:franklin.espinoza, date:05/01/2022, description: Clonar Proyecto Actividad Gestion}**/
     function clonarProyectoActividad(){
         $this->objFunc=$this->create('MODProyectoActividad');
         $this->res=$this->objFunc->clonarProyectoActividad($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
-    /**{developer:franklin.espinoza, date:18/01/2021, description: Clonar Proyecto Actividad}**/
+    /**{developer:franklin.espinoza, date:05/01/2022, description: Clonar Proyecto Actividad Gestion}**/
 			
 }
 
