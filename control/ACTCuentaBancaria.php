@@ -40,6 +40,12 @@ class ACTCuentaBancaria extends ACTbase{
 		$this->res=$this->objFunc->eliminarCuentaBancaria($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    function synchronizeCuentaBancaria(){
+        $this->objFunc=$this->create('MODCuentaBancaria');
+        $this->res=$this->objFunc->synchronizeCuentaBancaria($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());
+    }
 			
 }
 

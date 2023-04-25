@@ -380,7 +380,7 @@ class MODSigepAdq extends MODbase{
         //$pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin', 'admin');
 
         //echo($pxpRestClient->doPost('sigep/ServiceRequest/insertarServiceRequest', $servicio));exit;
-        if ($momento == "CON_IMPUTACION" || $momento == "CON_IMPUTACION_V") {
+        if ($momento == "CON_IMPUTACION" || $momento == "CON_IMPUTACION_V" || $momento == 'DOC_C31_REF_VIA') {
             if ($moneda == '34' || $moneda == '69') {
                 $tipo = 'C';
             } else {
@@ -461,6 +461,7 @@ class MODSigepAdq extends MODbase{
                     $str->user_apro = "".$usuario_apro."";
                     $str->user_firm = "".$usuario_firm."";
                     $str->gestion = $gestion;
+                    $str->regularizacion = "".'N'."";
                     $str->nroPreventivo = $nro_preventivo;
                     $str->fechaElaboracion = "" . $fecha_elaboracion . "";
                     $str->claseGastoCip = $clase_gasto_cip;
@@ -487,6 +488,7 @@ class MODSigepAdq extends MODbase{
                     /********************************* beneficiarios *********************************/
 
                     $str->libretas [] = array("idFuente" => "" . $id_fuente . "", "idOrganismo" => "" . $id_organismo . "", "bancoOrigen" => "" . $banco_origen . "", "cuentaOrigen" => "" . $cuenta_origen . "", "libretaOrigen" => "" . $libreta_origen . "");
+                    //var_dump('$str',$str);exit;
                     $json = json_encode($str);
                     $service_code = 'DOC_C31_REF_VIA';
                 }else {
@@ -920,7 +922,8 @@ class MODSigepAdq extends MODbase{
 
 
         $result= json_decode($variable, true);
-        //var_dump('request', $variable);exit;
+        //var_dump('$variable', $variable);exit;
+        /*var_dump('request', $result);exit;*/
         $id_service_request=$result['ROOT']['datos']['id_service_request'];
         //var_dump($json, $service_code, $id_service_request);exit;
         $str = new stdClass();
@@ -1089,14 +1092,14 @@ class MODSigepAdq extends MODbase{
                 $str->service_code = "" . $service_code . "";
 
                 $this->actualizaEstadosC('finalizado', $id_service_request, $nro_comprometido, $nro_devengado, $resp, $id_adq);
-            }elseif($service_code == 'CON_IMPUTACION_M' || $service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code == 'REGULARIZAC' || $service_code == 'REGULARIZAS' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV' || $service_code == 'CON_IMPUTACION_REV'){
+            }elseif( $service_code == 'CON_IMPUTACION_M' || $service_code == 'CON_IMPUTACION' || $service_code == 'SIN_IMPUTACION' || $service_code == 'SIN_IMPUTACION_CP' || $service_code == 'CON_IMPUTACION_V' || $service_code == 'REGULARIZAC' || $service_code == 'REGULARIZAS' || $service_code == 'REGULARIZAC_REV' || $service_code == 'REGULARIZAS_REV' || $service_code == 'CON_IMPUTACION_REV' || $service_code == 'DOC_C31_REF_VIA' ){
                 $id_sigep_adq = $this->objParam->getParametro('id_sigep_adq');
                 $nro_preventivo = $result['ROOT']['datos']['output']['nroPreventivo'];
                 $nro_comprometido = $result['ROOT']['datos']['output']['nroCompromiso'];
                 $nro_devengado = $result['ROOT']['datos']['output']['nroDevengado'];
 
                 /*begin franklin.espinoza 21/09/2020 update c31*/
-                if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_REV') {
+                if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_REV' || $service_code == 'DOC_C31_REF_VIA') {
                     $nro_documento = $nro_preventivo.','.$nro_comprometido;
                 }
 
@@ -1104,18 +1107,70 @@ class MODSigepAdq extends MODbase{
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'CIP " . $nro_preventivo . "'
                             WHERE id_entrega = " . $id_entrega;
-                }else if($service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_REV') {
+                }else if( $service_code == 'CON_IMPUTACION' || $service_code == 'CON_IMPUTACION_REV' ) {
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'CIP " . $nro_documento . "'
                             WHERE id_entrega = " . $id_entrega;
-                }else{
+                }else if( $service_code == 'REGULARIZAS' || $service_code == 'REGULARIZAS_REV' ) {
                     $sql = "UPDATE  conta.tentrega SET
                             c31 = 'SIP " . $nro_devengado . "'
+                            WHERE id_entrega = " . $id_entrega;
+                }else if( $service_code == 'DOC_C31_REF_VIA' ) {
+                    $sql = "UPDATE  conta.tentrega SET
+                            c31 = 'CIP " . $nro_documento . "'
                             WHERE id_entrega = " . $id_entrega;
                 }
 
                 $stmt = $link->prepare($sql);
                 $stmt->execute();
+
+                /** SERVICIO DE ACTUALIZACION C31 Y FECHA **/
+                $sql = "select cbt.id_int_comprobante, ent.fecha_c31, ent.c31, ent.glosa, cbt.tipo_cbte
+                        from conta.tentrega ent
+                        inner join conta.tentrega_det det on det.id_entrega = ent.id_entrega
+                        inner join conta.tint_comprobante cbt on cbt.id_int_comprobante = det.id_int_comprobante
+                        where ent.id_entrega = ". $id_entrega;
+
+                $consulta = $link->query($sql);
+                $consulta->execute();
+                $data_entrega = $consulta->fetchAll(PDO::FETCH_ASSOC);
+
+
+                if ( $data_entrega[0]['tipo_cbte'] == 'viatico_operativo' ) {
+
+                    $host = 'http://172.17.58.51/BoaPersonalApis/MS_ViaticalPayment/UpdateStatusVoucher';
+                    $data = array(
+                        'comprobanteId' => intval($data_entrega[0]['id_int_comprobante']),
+                        'estado' => 'validado',
+                        'fechaC31' => strval($data_entrega[0]['fecha_c31']),
+                        'c31' => strval($data_entrega[0]['c31']),
+                        'glosa' => strval($data_entrega[0]['glosa']),
+                        'cliente' => 'ERPBOA'
+                    );
+
+                    $json_data = json_encode($data);
+                    $s = curl_init();
+                    curl_setopt($s, CURLOPT_URL, $host);
+                    curl_setopt($s, CURLOPT_CUSTOMREQUEST, "PUT");
+                    curl_setopt($s, CURLOPT_POSTFIELDS, $json_data);
+                    curl_setopt($s, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($s, CURLOPT_CONNECTTIMEOUT, 20);
+                    curl_setopt($s, CURLOPT_HTTPHEADER, array(
+                            'Content-Type: application/json',
+                            'Content-Length: ' . strlen($json_data))
+                    );
+                    $_out = curl_exec($s);
+                    $status = curl_getinfo($s, CURLINFO_HTTP_CODE);
+
+                    if (!$status) {
+                        throw new Exception("No se pudo conectar con el Servicio");
+                    }
+                    curl_close($s);
+                    $res = json_decode($_out);
+
+                }
+                /** SERVICIO DE ACTUALIZACION C31 Y FECHA **/
+
                 /*end franklin.espinoza 21/09/2020*/
 
                 $str = new stdClass();
@@ -1130,7 +1185,7 @@ class MODSigepAdq extends MODbase{
             }else{
                 $id_proveedor = $this->objParam->getParametro('id_proveedor');
                 $id_beneficiario = $result['ROOT']['datos']['output']['beneficiario'];
-                $razon_social = $result['ROOT']['datos']['output']['razonSocial'];
+                $razon_social = $result['ROOT']['datos']['output']['nombreImpresion'];
                 //var_dump('finalizado nro:', $id_beneficiario, $razon_social);exit;
                 $str = new stdClass();
                 $str->id_beneficiario = "" . $id_beneficiario . "";

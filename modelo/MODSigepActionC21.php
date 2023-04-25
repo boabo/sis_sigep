@@ -255,7 +255,7 @@ class MODSigepActionC21 extends MODbase{
             $str->fechaElaboracion = "" . $fecha_elaboracion . "";
 
             $str->moneda = $moneda;
-            $str->fechaTipoCambio = "" . $fecha_elaboracion . "";
+            $str->fechaTipoCambio = "" . $fecha_tipo_cambio . "";
             $str->compraVenta = "" . $tipo . "";
             $str->resumen = "" . $resumen . "";
 
@@ -332,9 +332,12 @@ class MODSigepActionC21 extends MODbase{
         //var_dump('$variable', $variable,'$result', $result);exit;
 
         $id_service_request=$result['ROOT']['datos']['id_service_request'];
+
+        //var_dump('$id_service_request', $id_service_request,$id_adq, $estado_c21, $service_code);exit;
         $str = new stdClass();
         if($service_code == 'REG_CON_FLUJO_C21' || $service_code == 'REG_CON_FLUJO_C21_REV'){
             $this->actualizaEstados('registrado', $id_service_request, '','', $id_adq);
+            //var_dump('actualizaEstados',$id_service_request, $id_adq,  $estado_c21);exit;
             $this->procesarServicesC21($id_service_request, $id_adq,  $estado_c21);
             $str->id_sigep_adq = "".$id_adq."";
             $str->service_code = "".$service_code."";
@@ -361,7 +364,7 @@ class MODSigepActionC21 extends MODbase{
                     "momento" => $momento
                 )
             );
-            $resul = json_decode($variable,true);//var_dump('VARIABLE ANTES: ',$resul['ROOT']['datos'], $variable);exit;
+            $resul = json_decode($variable,true);//var_dump('VARIABLE ANTES: ',$resul, $variable);exit;
             $str = new stdClass();
             $str->resultado = "" . $resul . "";
 
@@ -398,12 +401,12 @@ class MODSigepActionC21 extends MODbase{
         $stmt->execute();*/
         /*end franklin.espinoza 21/09/2020*/
 
-        $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
 
         $variable = $pxpRestClient->doPost('sigep/ServiceRequest/getServiceStatusC21',
             array(	"id_service_request"=>''.$id_service_request.''
             ));
-
+        //var_dump('$variable', $variable);exit;
         $result= json_decode($variable, true);
 
         /*franklin.espinoza 16/09/2020 actualizar id_service_request*/
@@ -507,7 +510,7 @@ class MODSigepActionC21 extends MODbase{
         $id_comprobante = $this->objParam->getParametro('id_comprobante');
         $tipo = $this->objParam->getParametro('tipo');
 
-        $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
 
         $variable = $pxpRestClient->doPost('sigep/ServiceRequest/getServiceStatus',
             array(	"id_service_request"=>''.$id_service_request.''
@@ -547,7 +550,7 @@ class MODSigepActionC21 extends MODbase{
         $id_entrega = $this->objParam->getParametro('id_entrega');
         $tipo = $this->objParam->getParametro('tipo');
 
-        $pxpRestClient = PxpRestClient2::connect('10.150.0.90', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
+        $pxpRestClient = PxpRestClient2::connect('172.17.58.62', 'kerp/pxp/lib/rest/')->setCredentialsPxp('admin','admin');
 
         $variable = $pxpRestClient->doPost('sigep/ServiceRequest/getServiceStatus',
             array(	"id_service_request"=>''.$id_service_request.''
@@ -598,6 +601,40 @@ class MODSigepActionC21 extends MODbase{
         //Devuelve la respuesta
         //var_dump('consulta benef:',$this->respuesta);
         return $this->respuesta;
+    }
+
+    function actualizaEstados($estado, $dato, $preve, $mensaje, $valor) {
+        if ($preve == ''){
+            $preve = null;
+        }
+        $cone = new conexion();
+        $link = $cone->conectarpdo();
+
+        $sql = "UPDATE  sigep.tsigep_adq
+                SET estado = '".$estado."',
+                  id_service_request = ".$dato.",
+                  nro_preventivo = ".$preve."::integer,
+                  ultimo_mensaje = '".$mensaje."'
+                WHERE id_sigep_adq =$valor";
+
+        $stmt = $link->prepare($sql);
+        $stmt->execute();
+    }
+
+    function actualizaEstadosC($estado, $dato, $compro, $deven, $mensaje, $valor) {
+        $cone = new conexion();
+        $link = $cone->conectarpdo();
+
+        $sql = "UPDATE  sigep.tsigep_adq
+                SET estado = '".$estado."',
+                  id_service_request = ".$dato.",
+                  nro_comprometido = ".$compro."::integer,
+                  nro_devengado = ".$deven."::integer,
+                  ultimo_mensaje = '".$mensaje."'
+                WHERE id_sigep_adq =$valor";
+
+        $stmt = $link->prepare($sql);
+        $stmt->execute();
     }
 
 }

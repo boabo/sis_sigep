@@ -18,9 +18,61 @@ Phx.vista.CuentaBancaria=Ext.extend(Phx.gridInterfaz,{
 		this.maestro=config.maestro;
     	//llama al constructor de la clase padre
 		Phx.vista.CuentaBancaria.superclass.constructor.call(this,config);
+
+        this.addButton('clonarUnidadEjecutora',
+            {
+
+                text: 'Sync Cuenta Bancaria',
+                iconCls: 'breload',
+                disabled: false,
+                handler: this.syncCuentaBancaria,
+                tooltip: '<b>Sincronizar</b><br/>Permite sincronizar cuentas bancarias.'
+            }
+        );
+
 		this.init();
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
+
+    syncCuentaBancaria: function () {
+
+        Ext.Msg.show({
+            title: 'Cuenta Bancaria',
+            msg: '<b style="color: red;">Esta seguro de Sincronizar los registros de Cuenta Bancaria?</b>',
+            fn: function (btn){
+                if(btn == 'ok'){
+                    var record = this.getSelectedData();
+                    Phx.CP.loadingShow();
+
+                    Ext.Ajax.request({
+                        url: '../../sis_sigep/control/CuentaBancaria/synchronizeCuentaBancaria',
+                        params: {
+                            momento : 'all'
+                        },
+                        success: function (resp) {
+                            Phx.CP.loadingHide();
+                            var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+                            if (reg.ROOT.error) {
+                                Ext.Msg.alert('Error', 'Al Sincronizar Cuenta Bancaria: ' + reg.ROOT.error)
+                            } else {
+                                this.reload();
+                            }
+                        },
+                        failure: this.conexionFailure,
+                        timeout: this.timeout,
+                        scope: this
+                    });
+
+                }
+            },
+            buttons: Ext.Msg.OKCANCEL,
+            width: 450,
+            maxWidth:500,
+            icon: Ext.Msg.WARNING,
+            scope:this
+        });
+
+    },
 			
 	Atributos:[
 		{

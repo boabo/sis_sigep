@@ -1,10 +1,10 @@
 CREATE OR REPLACE FUNCTION sigep.ft_sigep_action_sel (
-  p_administrador integer,
-  p_id_usuario integer,
-  p_tabla varchar,
-  p_transaccion varchar
+    p_administrador integer,
+    p_id_usuario integer,
+    p_tabla varchar,
+    p_transaccion varchar
 )
-RETURNS varchar AS
+    RETURNS varchar AS
 $body$
 /**************************************************************************
  SISTEMA:		Integracion SIGEP
@@ -22,35 +22,35 @@ $body$
 
 DECLARE
 
-	v_consulta    		varchar;
+    v_consulta    		varchar;
     v_query    		 	varchar;
-	v_parametros  		record;
-	v_nombre_funcion   	text;
-	v_resp				varchar;
+    v_parametros  		record;
+    v_nombre_funcion   	text;
+    v_resp				varchar;
 
 BEGIN
 
-	v_nombre_funcion = 'sigep.ft_sigep_action_sel';
+    v_nombre_funcion = 'sigep.ft_sigep_action_sel';
     v_parametros = pxp.f_get_record(p_tabla);
 
-	/*********************************
- 	#TRANSACCION:  'SIGEP_SADQ_SEL'
- 	#DESCRIPCION:	Consulta de datos
- 	#AUTOR:		rzabala
- 	#FECHA:		15-03-2019 21:10:26
-	***********************************/
+    /*********************************
+     #TRANSACCION:  'SIGEP_SADQ_A_SEL'
+     #DESCRIPCION:	Consulta de datos
+     #AUTOR:		rzabala
+     #FECHA:		15-03-2019 21:10:26
+    ***********************************/
 
-	if(p_transaccion='SIGEP_SADQ_SEL')then
+    if(p_transaccion='SIGEP_SADQ_A_SEL')then
 
-    	begin
-        /*if v_parametros.sigep_adq = 'vbsigepconta' then
-        	UPDATE sigep.tsigep_adq
-            SET momento = 'COMPROMETIDO-DEVENGADO'
-            WHERE nro_preventivo is not null
-        END IF;*/
+        begin
+            /*if v_parametros.sigep_adq = 'vbsigepconta' then
+                UPDATE sigep.tsigep_adq
+                SET momento = 'COMPROMETIDO-DEVENGADO'
+                WHERE nro_preventivo is not null
+            END IF;*/
 
-    		--Sentencia de la consulta
-			v_consulta:='select
+            --Sentencia de la consulta
+            v_consulta:='select
 						sadq.id_sigep_adq,
 						sadq.estado_reg,
 						sadq.num_tramite,
@@ -75,57 +75,57 @@ BEGIN
 						left join segu.tusuario usu2 on usu2.id_usuario = sadq.id_usuario_mod
 				        where  ';
 
-                        --de ser necesario adicionar--inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
+            --de ser necesario adicionar--inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
 
-			--Definicion de la respuesta
-			v_consulta:=v_consulta||v_parametros.filtro;
-			v_consulta:=v_consulta||' order by id_sigep_adq ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+            --Definicion de la respuesta
+            v_consulta:=v_consulta||v_parametros.filtro;
+            v_consulta:=v_consulta||' order by id_sigep_adq ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
 
             raise notice 'v_consulta: %', v_consulta;
-			--Devuelve la respuesta
-			return v_consulta;
+            --Devuelve la respuesta
+            return v_consulta;
 
-		end;
+        end;
 
-	/*********************************
- 	#TRANSACCION:  'SIGEP_SADQ_CONT'
- 	#DESCRIPCION:	Conteo de registros
- 	#AUTOR:		rzabala
- 	#FECHA:		15-03-2019 21:10:26
-	***********************************/
+        /*********************************
+         #TRANSACCION:  'SIGEP_SADQ_A_CONT'
+         #DESCRIPCION:	Conteo de registros
+         #AUTOR:		rzabala
+         #FECHA:		15-03-2019 21:10:26
+        ***********************************/
 
-	elsif(p_transaccion='SIGEP_SADQ_CONT')then
+    elsif(p_transaccion='SIGEP_SADQ_A_CONT')then
 
-		begin
+        begin
 
-			--Sentencia de la consulta de conteo de registros
-			v_consulta:='select count(id_sigep_adq)
+            --Sentencia de la consulta de conteo de registros
+            v_consulta:='select count(id_sigep_adq)
 					    from sigep.tsigep_adq sadq
 					    inner join segu.tusuario usu1 on usu1.id_usuario = sadq.id_usuario_reg
                         --inner join adq.tsolicitud sol on sol.num_tramite = sadq.num_tramite
 						left join segu.tusuario usu2 on usu2.id_usuario = sadq.id_usuario_mod
 					    where ';
 
-			--Definicion de la respuesta
-			v_consulta:=v_consulta||v_parametros.filtro;
-			raise notice 'v_consulta: %', v_consulta;
-			--Devuelve la respuesta
-			return v_consulta;
+            --Definicion de la respuesta
+            v_consulta:=v_consulta||v_parametros.filtro;
+            raise notice 'v_consulta: %', v_consulta;
+            --Devuelve la respuesta
+            return v_consulta;
 
-		end;
+        end;
 
-    /*********************************
- 	#TRANSACCION:  'SIGEP_CONS'
- 	#DESCRIPCION:	Consulta para datos de envio al Sigep
- 	#AUTOR:		rzabala
- 	#FECHA:		04-06-2019 16:10:26
-	***********************************/
+        /*********************************
+         #TRANSACCION:  'SIGEP_CONS_A'
+         #DESCRIPCION:	Consulta para datos de envio al Sigep
+         #AUTOR:		rzabala
+         #FECHA:		04-06-2019 16:10:26
+        ***********************************/
 
-	elsif(p_transaccion='SIGEP_CONS')then
+    elsif(p_transaccion='SIGEP_CONS_A')then
 
-		begin
-			--Sentencia de la consulta
-			--raise exception 'checkpoint CONSULTA BENEFICIARIO SIGEP: %', v_parametros.id_sigep_adq;
+        begin
+            --Sentencia de la consulta
+            --raise exception 'checkpoint CONSULTA BENEFICIARIO SIGEP: %', v_parametros.id_sigep_adq;
 
             v_consulta:='SELECT
             		  sdet.id_sigep_adq,
@@ -185,26 +185,26 @@ BEGIN
               inner join sigep.tsigep_adq sig on sig.id_sigep_adq = sdet.id_sigep_adq
               WHERE sdet.id_sigep_adq = '||v_parametros.id_sigep_adq;
 
-			--Definicion de la respuesta
+            --Definicion de la respuesta
             v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
-			--v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
-              --raise notice 'consulta: %', v_consulta;
+            --v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+            --raise notice 'consulta: %', v_consulta;
             --Devuelve la respuesta
             return v_consulta;
 
-		end;
-         /*********************************
- 	#TRANSACCION:  'SIGEP_DEL'
- 	#DESCRIPCION:	Consulta para datos de envio al Sigep
- 	#AUTOR:		rzabala
- 	#FECHA:		04-06-2019 16:10:26
-	***********************************/
+        end;
+        /*********************************
+    #TRANSACCION:  'SIGEP_A_DEL'
+    #DESCRIPCION:	Consulta para datos de envio al Sigep
+    #AUTOR:		rzabala
+    #FECHA:		04-06-2019 16:10:26
+   ***********************************/
 
-	elsif(p_transaccion='SIGEP_DEL')then
+    elsif(p_transaccion='SIGEP_A_DEL')then
 
-		begin
-			--Sentencia de la consulta
-			--raise exception 'checkpoint CONSULTA DESV/ELIMN SIGEP: %', v_parametros.id_int_comprobante;
+        begin
+            --Sentencia de la consulta
+            --raise exception 'checkpoint CONSULTA DESV/ELIMN SIGEP: %', v_parametros.id_int_comprobante;
 
             v_consulta:='SELECT  	sig.id_service_request,
 									sig.nro_preventivo,
@@ -219,27 +219,27 @@ BEGIN
     							and (sig.nro_preventivo, sig.nro_comprometido, sig.nro_devengado) is not null
     							and sdet.nro_doc_rdo = '||v_parametros.id_int_comprobante;
 
-			--Definicion de la respuesta
+            --Definicion de la respuesta
             v_consulta:=v_consulta||'group by sig.id_service_request, sig.nro_preventivo, sig.nro_comprometido, sig.nro_devengado, sig.fecha_reg, sdet.gestion';
             --v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
-              --raise notice 'consulta: %', v_consulta;
+            --raise notice 'consulta: %', v_consulta;
             --Devuelve la respuesta
             return v_consulta;
 
-		end;
+        end;
 
         /*********************************
- 	#TRANSACCION:  'SIGEP_REPR_SEL'
+ 	#TRANSACCION:  'SIGEP_REPR_A_SEL'
  	#DESCRIPCION:	Listar Datos para el Reporte
  	#AUTOR:		rzabala
  	#FECHA:		05-06-2019 20:34:32
 	***********************************/
 
-	elsif(p_transaccion='SIGEP_REPR_SEL')then
+    elsif(p_transaccion='SIGEP_REPR_A_SEL')then
 
-    	begin
-    		--Sentencia de la consulta
-			v_consulta:='select
+        begin
+            --Sentencia de la consulta
+            v_consulta:='select
             					sdet.id_sigep_adq
         					FROM sigep.tsigep_adq_det sdet
             				 inner join segu.tusuario usu1 on usu1.id_usuario = sdet.id_usuario_reg
@@ -247,27 +247,27 @@ BEGIN
               				 inner join sigep.tsigep_adq sig on sig.id_sigep_adq = sdet.id_sigep_adq
               				WHERE sdet.id_sigep_adq = '||v_parametros.id_sigep_adq;
 
-			--Definicion de la respuesta
-			v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
+            --Definicion de la respuesta
+            v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
             raise notice 'consulta: %', v_consulta;
-			--v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+            --v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
 
-			--Devuelve la respuesta
-			return v_consulta;
+            --Devuelve la respuesta
+            return v_consulta;
 
-		end;
+        end;
 
-    /*********************************
- 	#TRANSACCION:  'C21_GET_PARAMS'
- 	#DESCRIPCION:	Consulta para datos de envio al Sigep
- 	#AUTOR:		franklin.espinoza
- 	#FECHA:		04-01-2022 10:10:26
-	***********************************/
+        /*********************************
+         #TRANSACCION:  'C21_GET_PARAMS'
+         #DESCRIPCION:	Consulta para datos de envio al Sigep
+         #AUTOR:		franklin.espinoza
+         #FECHA:		04-01-2022 10:10:26
+        ***********************************/
 
-	elsif(p_transaccion='C21_GET_PARAMS')then
+    elsif(p_transaccion='C21_GET_PARAMS')then
 
-		begin
-			--Sentencia de la consulta
+        begin
+            --Sentencia de la consulta
 
             v_consulta:='SELECT
             		  sdet.id_sigep_adq,
@@ -321,36 +321,36 @@ BEGIN
               inner join sigep.tsigep_adq sig on sig.id_sigep_adq = sdet.id_sigep_adq
               WHERE sdet.id_sigep_adq = '||v_parametros.id_sigep_adq;
 
-			--Definicion de la respuesta
+            --Definicion de la respuesta
             v_consulta:=v_consulta||'ORDER BY sdet.id_sigep_adq';
-			--v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
-              --raise notice 'consulta: %', v_consulta;
+            --v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+            --raise notice 'consulta: %', v_consulta;
             --Devuelve la respuesta
             return v_consulta;
 
-		end;
+        end;
 
-	else
+    else
 
-		raise exception 'Transaccion inexistente';
+        raise exception 'Transaccion inexistente';
 
-	end if;
+    end if;
 
 EXCEPTION
 
-	WHEN OTHERS THEN
-			v_resp='';
-			v_resp = pxp.f_agrega_clave(v_resp,'mensaje',SQLERRM);
-			v_resp = pxp.f_agrega_clave(v_resp,'codigo_error',SQLSTATE);
-			v_resp = pxp.f_agrega_clave(v_resp,'procedimientos',v_nombre_funcion);
-			raise exception '%',v_resp;
+    WHEN OTHERS THEN
+        v_resp='';
+        v_resp = pxp.f_agrega_clave(v_resp,'mensaje',SQLERRM);
+        v_resp = pxp.f_agrega_clave(v_resp,'codigo_error',SQLSTATE);
+        v_resp = pxp.f_agrega_clave(v_resp,'procedimientos',v_nombre_funcion);
+        raise exception '%',v_resp;
 END;
 $body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
-COST 100;
+    LANGUAGE 'plpgsql'
+    VOLATILE
+    CALLED ON NULL INPUT
+    SECURITY INVOKER
+    COST 100;
 
 ALTER FUNCTION sigep.ft_sigep_action_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;
+    OWNER TO postgres;
